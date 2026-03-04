@@ -1,0 +1,476 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		28B0CFF05ED1CDD81F5C3584 /* SmokeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55F00C171DF86F249DD81368 /* SmokeTests.swift */; };
+		6C6152910A59A689E7D65FE3 /* ClearanceApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC1D94EEFD55E5B462789CF5 /* ClearanceApp.swift */; };
+		D65080CF3E17BAF91FB35E28 /* Yams in Frameworks */ = {isa = PBXBuildFile; productRef = 3214E95FEEF579789CB33DD9 /* Yams */; };
+		D8D2E2943909BBFCCBD5FF73 /* WorkspaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44612D18F959FD7F2CDD3DBE /* WorkspaceView.swift */; };
+		E4D6121D472881B9127B3C0C /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E1687B28E91B80164C0B4D2 /* AppDelegate.swift */; };
+		EBDD71F95FED42F98738C1DC /* Down in Frameworks */ = {isa = PBXBuildFile; productRef = 1275B1FEC07F16BDF9513CEA /* Down */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		8FFF9FE04658025A2F240301 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 71D601864E4D2AADDC25175D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 0968501C6A4F63E013A14374;
+			remoteInfo = Clearance;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		34C4A19B6F698407847DF441 /* Clearance.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Clearance.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		44612D18F959FD7F2CDD3DBE /* WorkspaceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkspaceView.swift; sourceTree = "<group>"; };
+		55F00C171DF86F249DD81368 /* SmokeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmokeTests.swift; sourceTree = "<group>"; };
+		7E1687B28E91B80164C0B4D2 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		9A2B8249245BF603D879F69A /* ClearanceTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ClearanceTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		CC1D94EEFD55E5B462789CF5 /* ClearanceApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClearanceApp.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		72CE02DAB6B27232B3682375 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D65080CF3E17BAF91FB35E28 /* Yams in Frameworks */,
+				EBDD71F95FED42F98738C1DC /* Down in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		0A8340AD179FFDD675D71F4C /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				44612D18F959FD7F2CDD3DBE /* WorkspaceView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		109C929919AAE837B27A43BF /* ClearanceTests */ = {
+			isa = PBXGroup;
+			children = (
+				55F00C171DF86F249DD81368 /* SmokeTests.swift */,
+			);
+			path = ClearanceTests;
+			sourceTree = "<group>";
+		};
+		16545B835C0A0207E7B147B6 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				34C4A19B6F698407847DF441 /* Clearance.app */,
+				9A2B8249245BF603D879F69A /* ClearanceTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		5F4202E9B8451134293F0B24 = {
+			isa = PBXGroup;
+			children = (
+				D183F7BE0F49CD9177BF3CB2 /* Clearance */,
+				109C929919AAE837B27A43BF /* ClearanceTests */,
+				16545B835C0A0207E7B147B6 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		CC7E60FC712BEA9F9D6BF811 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				7E1687B28E91B80164C0B4D2 /* AppDelegate.swift */,
+				CC1D94EEFD55E5B462789CF5 /* ClearanceApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		D183F7BE0F49CD9177BF3CB2 /* Clearance */ = {
+			isa = PBXGroup;
+			children = (
+				CC7E60FC712BEA9F9D6BF811 /* App */,
+				0A8340AD179FFDD675D71F4C /* Views */,
+			);
+			path = Clearance;
+			sourceTree = "<group>";
+		};
+		"TEMP_A12FF48B-C12B-4EBC-AB68-5AEB26D1DFD1" /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		0968501C6A4F63E013A14374 /* Clearance */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 66D50FD0BD238C874A3E4AB7 /* Build configuration list for PBXNativeTarget "Clearance" */;
+			buildPhases = (
+				B5D2C165DB0D4284ED6D9441 /* Sources */,
+				72CE02DAB6B27232B3682375 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Clearance;
+			packageProductDependencies = (
+				3214E95FEEF579789CB33DD9 /* Yams */,
+				1275B1FEC07F16BDF9513CEA /* Down */,
+			);
+			productName = Clearance;
+			productReference = 34C4A19B6F698407847DF441 /* Clearance.app */;
+			productType = "com.apple.product-type.application";
+		};
+		38C11196744B99C44D4EF08C /* ClearanceTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C8A115BC8C99D1BD908BAD4C /* Build configuration list for PBXNativeTarget "ClearanceTests" */;
+			buildPhases = (
+				A1B4A3E836AC796B801C860B /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				EE74E426C1EA009CE1758B7F /* PBXTargetDependency */,
+			);
+			name = ClearanceTests;
+			packageProductDependencies = (
+			);
+			productName = ClearanceTests;
+			productReference = 9A2B8249245BF603D879F69A /* ClearanceTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		71D601864E4D2AADDC25175D /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					0968501C6A4F63E013A14374 = {
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = ED66D83F11FC4A029E6C5E1A /* Build configuration list for PBXProject "Clearance" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 5F4202E9B8451134293F0B24;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				08FD4FDF08FA33D77F5DFD5E /* XCRemoteSwiftPackageReference "Down" */,
+				46FDBA5BD89FAFB875CE42F8 /* XCRemoteSwiftPackageReference "Yams" */,
+			);
+			preferredProjectObjectVersion = 77;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				0968501C6A4F63E013A14374 /* Clearance */,
+				38C11196744B99C44D4EF08C /* ClearanceTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		A1B4A3E836AC796B801C860B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				28B0CFF05ED1CDD81F5C3584 /* SmokeTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B5D2C165DB0D4284ED6D9441 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E4D6121D472881B9127B3C0C /* AppDelegate.swift in Sources */,
+				6C6152910A59A689E7D65FE3 /* ClearanceApp.swift in Sources */,
+				D8D2E2943909BBFCCBD5FF73 /* WorkspaceView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		EE74E426C1EA009CE1758B7F /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 0968501C6A4F63E013A14374 /* Clearance */;
+			targetProxy = 8FFF9FE04658025A2F240301 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		2EE64FDB69A8ECDEFEC08B28 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.jesse.ClearanceTests;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 6.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Clearance.app/Contents/MacOS/Clearance";
+			};
+			name = Release;
+		};
+		4775811505AEFBBB0633ABFE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Clearance;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.jesse.Clearance;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		7D767B6F1B8D8D33ECA5D8E3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Clearance;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.jesse.Clearance;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		9D130AB5A54C8386925D9BEE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.jesse.ClearanceTests;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 6.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Clearance.app/Contents/MacOS/Clearance";
+			};
+			name = Debug;
+		};
+		F5A46CD6A1B4DAFE8D4E9A4A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		FF8FE07DBBD62E5267487232 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		66D50FD0BD238C874A3E4AB7 /* Build configuration list for PBXNativeTarget "Clearance" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4775811505AEFBBB0633ABFE /* Debug */,
+				7D767B6F1B8D8D33ECA5D8E3 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		C8A115BC8C99D1BD908BAD4C /* Build configuration list for PBXNativeTarget "ClearanceTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9D130AB5A54C8386925D9BEE /* Debug */,
+				2EE64FDB69A8ECDEFEC08B28 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		ED66D83F11FC4A029E6C5E1A /* Build configuration list for PBXProject "Clearance" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FF8FE07DBBD62E5267487232 /* Debug */,
+				F5A46CD6A1B4DAFE8D4E9A4A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		08FD4FDF08FA33D77F5DFD5E /* XCRemoteSwiftPackageReference "Down" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/johnxnguyen/Down";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.11.0;
+			};
+		};
+		46FDBA5BD89FAFB875CE42F8 /* XCRemoteSwiftPackageReference "Yams" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/jpsim/Yams";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.1.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		1275B1FEC07F16BDF9513CEA /* Down */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 08FD4FDF08FA33D77F5DFD5E /* XCRemoteSwiftPackageReference "Down" */;
+			productName = Down;
+		};
+		3214E95FEEF579789CB33DD9 /* Yams */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 46FDBA5BD89FAFB875CE42F8 /* XCRemoteSwiftPackageReference "Yams" */;
+			productName = Yams;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 71D601864E4D2AADDC25175D /* Project object */;
+}
