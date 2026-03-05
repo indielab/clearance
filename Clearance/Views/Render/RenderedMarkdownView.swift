@@ -11,6 +11,8 @@ struct RenderedMarkdownView: NSViewRepresentable {
     let document: ParsedMarkdownDocument
     let sourceDocumentURL: URL
     let headingScrollRequest: HeadingScrollRequest?
+    let theme: AppTheme
+    let appearance: AppearancePreference
     let onOpenLinkedDocument: (URL) -> Void
     private let builder = RenderedHTMLBuilder()
 
@@ -30,7 +32,11 @@ struct RenderedMarkdownView: NSViewRepresentable {
     }
 
     func updateNSView(_ webView: WKWebView, context: Context) {
-        let html = builder.build(document: document)
+        let html = builder.build(
+            document: document,
+            theme: theme,
+            appearance: appearance
+        )
         let coordinator = context.coordinator
         coordinator.sourceDocumentURL = sourceDocumentURL
         coordinator.onOpenLinkedDocument = onOpenLinkedDocument

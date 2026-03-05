@@ -14,6 +14,7 @@ struct ClearanceApp: App {
                 appSettings: appSettings,
                 popoutWindowController: popoutWindowController
             )
+            .preferredColorScheme(preferredColorScheme)
         }
         .windowToolbarStyle(.unified)
         .commands {
@@ -22,6 +23,18 @@ struct ClearanceApp: App {
 
         Settings {
             SettingsView(settings: appSettings)
+                .preferredColorScheme(preferredColorScheme)
+        }
+    }
+
+    private var preferredColorScheme: ColorScheme? {
+        switch appSettings.appearance {
+        case .system:
+            return nil
+        case .light:
+            return .light
+        case .dark:
+            return .dark
         }
     }
 }

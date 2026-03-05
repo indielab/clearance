@@ -3,6 +3,8 @@ import SwiftUI
 
 struct CodeMirrorEditorView: NSViewRepresentable {
     @Binding var text: String
+    let theme: AppTheme
+    let appearance: AppearancePreference
 
     func makeCoordinator() -> Coordinator {
         Coordinator(parent: self)
@@ -59,8 +61,14 @@ struct CodeMirrorEditorView: NSViewRepresentable {
     func updateNSView(_ scrollView: NSScrollView, context: Context) {
         context.coordinator.parent = self
 
-        guard let textView = context.coordinator.textView,
-              textView.string != text else {
+        guard let textView = context.coordinator.textView else {
+            return
+        }
+
+        context.coordinator.applyTheme(to: textView)
+        context.coordinator.highlighter.apply(to: textView)
+
+        guard textView.string != text else {
             return
         }
 
@@ -103,13 +111,29 @@ struct CodeMirrorEditorView: NSViewRepresentable {
         }
 
         func applyTheme(to textView: NSTextView) {
-            textView.backgroundColor = ClearancePalette.editorBackground
-            textView.textColor = ClearancePalette.text
-            textView.insertionPointColor = ClearancePalette.insertionPoint
+            let palette = EditorPalette(variant: resolvedThemeVariant(for: textView))
+            highlighter.setPalette(palette)
+
+            textView.backgroundColor = palette.editorBackground
+            textView.textColor = palette.text
+            textView.insertionPointColor = palette.insertionPoint
             textView.selectedTextAttributes = [
-                .backgroundColor: ClearancePalette.selectionBackground,
-                .foregroundColor: ClearancePalette.selectionText
+                .backgroundColor: palette.selectionBackground,
+                .foregroundColor: palette.selectionText
             ]
+        }
+
+        private func resolvedThemeVariant(for textView: NSTextView) -> ThemeVariant {
+            let palette = parent.theme.palette
+            switch parent.appearance {
+            case .light:
+                return palette.light
+            case .dark:
+                return palette.dark
+            case .system:
+                let bestMatch = textView.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua])
+                return bestMatch == .darkAqua ? palette.dark : palette.light
+            }
         }
     }
 }
@@ -163,6 +187,7 @@ final class EditorTextView: NSTextView {
 
 @MainActor
 final class MarkdownSyntaxHighlighter {
+    private var palette = EditorPalette.default
     private let headingRegex = try! NSRegularExpression(pattern: "(?m)^(#{1,6})\\s+(.+)$")
     private let frontmatterRegex = try! NSRegularExpression(pattern: "(?s)\\A---\\n.*?\\n---\\n?")
     private let fencedCodeRegex = try! NSRegularExpression(pattern: "(?s)(?:```|~~~)([A-Za-z0-9_+-]*)[^\\n]*\\n(.*?)\\n?(?:```|~~~)")
@@ -182,6 +207,10 @@ final class MarkdownSyntaxHighlighter {
     private let swiftKeywordRegex = try! NSRegularExpression(pattern: "\\b(?:actor|as|associatedtype|async|await|break|case|catch|class|continue|default|defer|do|else|enum|extension|fallthrough|false|for|func|guard|if|import|in|init|inout|internal|is|let|nil|operator|private|protocol|public|repeat|return|self|static|struct|subscript|super|switch|throw|throws|true|try|typealias|var|where|while)\\b")
     private let jsKeywordRegex = try! NSRegularExpression(pattern: "\\b(?:as|async|await|break|case|catch|class|const|continue|debugger|default|delete|do|else|enum|export|extends|false|finally|for|from|function|if|import|in|instanceof|interface|let|new|null|private|protected|public|readonly|return|static|switch|this|throw|true|try|type|typeof|var|void|while|with|yield)\\b")
     private let genericKeywordRegex = try! NSRegularExpression(pattern: "\\b(?:if|else|for|while|switch|case|break|continue|return|func|function|class|struct|enum|let|var|const|import|from|export|true|false|null|nil)\\b")
+
+    fileprivate func setPalette(_ newPalette: EditorPalette) {
+        palette = newPalette
+    }
 
     func apply(to textView: NSTextView) {
         guard let storage = textView.textStorage else {
@@ -240,32 +269,32 @@ final class MarkdownSyntaxHighlighter {
     private var baseAttributes: [NSAttributedString.Key: Any] {
         [
             .font: NSFont.monospacedSystemFont(ofSize: 15, weight: .regular),
-            .foregroundColor: ClearancePalette.text
+            .foregroundColor: palette.text
         ]
     }
 
     private var frontmatterAttributes: [NSAttributedString.Key: Any] {
         [
             .font: NSFont.monospacedSystemFont(ofSize: 14.5, weight: .regular),
-            .foregroundColor: ClearancePalette.frontmatter
+            .foregroundColor: palette.frontmatter
         ]
     }
 
     private var blockquoteAttributes: [NSAttributedString.Key: Any] {
         [
-            .foregroundColor: ClearancePalette.secondaryText
+            .foregroundColor: palette.secondaryText
         ]
     }
 
     private var listMarkerAttributes: [NSAttributedString.Key: Any] {
         [
-            .foregroundColor: ClearancePalette.listMarker
+            .foregroundColor: palette.listMarker
         ]
     }
 
     private var linkAttributes: [NSAttributedString.Key: Any] {
         [
-            .foregroundColor: ClearancePalette.link,
+            .foregroundColor: palette.link,
             .underlineStyle: NSUnderlineStyle.single.rawValue
         ]
     }
@@ -285,16 +314,16 @@ final class MarkdownSyntaxHighlighter {
     private var inlineCodeAttributes: [NSAttributedString.Key: Any] {
         [
             .font: NSFont.monospacedSystemFont(ofSize: 14, weight: .regular),
-            .foregroundColor: ClearancePalette.inlineCodeText,
-            .backgroundColor: ClearancePalette.inlineCodeBackground
+            .foregroundColor: palette.inlineCodeText,
+            .backgroundColor: palette.inlineCodeBackground
         ]
     }
 
     private var fencedCodeAttributes: [NSAttributedString.Key: Any] {
         [
             .font: codeFont,
-            .foregroundColor: ClearancePalette.codeBlockText,
-            .backgroundColor: ClearancePalette.codeBlockBackground
+            .foregroundColor: palette.codeBlockText,
+            .backgroundColor: palette.codeBlockBackground
         ]
     }
 
@@ -305,35 +334,35 @@ final class MarkdownSyntaxHighlighter {
     private var codeCommentAttributes: [NSAttributedString.Key: Any] {
         [
             .font: codeFont,
-            .foregroundColor: ClearancePalette.syntaxComment
+            .foregroundColor: palette.syntaxComment
         ]
     }
 
     private var codeKeywordAttributes: [NSAttributedString.Key: Any] {
         [
             .font: codeFont,
-            .foregroundColor: ClearancePalette.syntaxKeyword
+            .foregroundColor: palette.syntaxKeyword
         ]
     }
 
     private var codeStringAttributes: [NSAttributedString.Key: Any] {
         [
             .font: codeFont,
-            .foregroundColor: ClearancePalette.syntaxString
+            .foregroundColor: palette.syntaxString
         ]
     }
 
     private var codeNumberAttributes: [NSAttributedString.Key: Any] {
         [
             .font: codeFont,
-            .foregroundColor: ClearancePalette.syntaxNumber
+            .foregroundColor: palette.syntaxNumber
         ]
     }
 
     private var codePropertyAttributes: [NSAttributedString.Key: Any] {
         [
             .font: codeFont,
-            .foregroundColor: ClearancePalette.syntaxProperty
+            .foregroundColor: palette.syntaxProperty
         ]
     }
 
@@ -413,46 +442,83 @@ final class MarkdownSyntaxHighlighter {
 
         return [
             .font: NSFont.monospacedSystemFont(ofSize: size, weight: .semibold),
-            .foregroundColor: ClearancePalette.heading
+            .foregroundColor: palette.heading
         ]
     }
 }
 
-private enum ClearancePalette {
-    static let editorBackground = dynamic(light: hex(0xF3F5F9), dark: hex(0x0E1118))
-    static let text = dynamic(light: hex(0x1F2733), dark: hex(0xD5DEEB))
-    static let secondaryText = dynamic(light: hex(0x5C697C), dark: hex(0x97A5BA))
-    static let heading = dynamic(light: hex(0x2C62D6), dark: hex(0x8CA8FF))
-    static let frontmatter = dynamic(light: hex(0x0E7490), dark: hex(0x7AD0C8))
-    static let listMarker = dynamic(light: hex(0xCB7A1A), dark: hex(0xF2B46B))
-    static let link = dynamic(light: hex(0x2F6FE0), dark: hex(0x90B2FF))
-    static let inlineCodeText = dynamic(light: hex(0x2757A8), dark: hex(0xA6C7FF))
-    static let inlineCodeBackground = dynamic(light: hex(0x2F6FE0, alpha: 0.14), dark: hex(0x779DDC, alpha: 0.22))
-    static let codeBlockText = dynamic(light: hex(0xD5E2FF), dark: hex(0xDCE6FF))
-    static let codeBlockBackground = dynamic(light: hex(0x0F172A), dark: hex(0x0A1020))
-    static let insertionPoint = dynamic(light: hex(0x2F6FE0), dark: hex(0x90B2FF))
-    static let selectionBackground = dynamic(light: hex(0x2F6FE0, alpha: 0.28), dark: hex(0x4B6290, alpha: 0.35))
-    static let selectionText = dynamic(light: hex(0x0B1220), dark: hex(0xF3F5F9))
-    static let syntaxComment = dynamic(light: hex(0x7C8AA0), dark: hex(0x8FA2C2))
-    static let syntaxKeyword = dynamic(light: hex(0x7A3FE0), dark: hex(0xB39BFF))
-    static let syntaxString = dynamic(light: hex(0x0B7A65), dark: hex(0x7DD7B8))
-    static let syntaxNumber = dynamic(light: hex(0xB05A00), dark: hex(0xFFB86B))
-    static let syntaxProperty = dynamic(light: hex(0x2A6BB5), dark: hex(0x8CB8FF))
+fileprivate struct EditorPalette {
+    let editorBackground: NSColor
+    let text: NSColor
+    let secondaryText: NSColor
+    let heading: NSColor
+    let frontmatter: NSColor
+    let listMarker: NSColor
+    let link: NSColor
+    let inlineCodeText: NSColor
+    let inlineCodeBackground: NSColor
+    let codeBlockText: NSColor
+    let codeBlockBackground: NSColor
+    let insertionPoint: NSColor
+    let selectionBackground: NSColor
+    let selectionText: NSColor
+    let syntaxComment: NSColor
+    let syntaxKeyword: NSColor
+    let syntaxString: NSColor
+    let syntaxNumber: NSColor
+    let syntaxProperty: NSColor
 
-    private static func dynamic(light: NSColor, dark: NSColor) -> NSColor {
-        NSColor(name: nil) { appearance in
-            let match = appearance.bestMatch(from: [.darkAqua, .aqua])
-            if match == .darkAqua {
-                return dark
-            }
-            return light
-        }
+    init(variant: ThemeVariant) {
+        editorBackground = .clearanceHex(variant.background)
+        text = .clearanceHex(variant.text)
+        secondaryText = .clearanceHex(variant.muted)
+        heading = .clearanceHex(variant.heading)
+        frontmatter = .clearanceHex(variant.frontmatter)
+        listMarker = .clearanceHex(variant.listMarker)
+        link = .clearanceHex(variant.link)
+        inlineCodeText = .clearanceHex(variant.inlineCodeText)
+        inlineCodeBackground = .clearanceHex(variant.inlineCodeBackground)
+        codeBlockText = .clearanceHex(variant.codeText)
+        codeBlockBackground = .clearanceHex(variant.codeBackground)
+        insertionPoint = .clearanceHex(variant.link)
+        selectionBackground = .clearanceHex(variant.selectionBackground)
+        selectionText = .clearanceHex(variant.selectionText)
+        syntaxComment = .clearanceHex(variant.tokenComment)
+        syntaxKeyword = .clearanceHex(variant.tokenKeyword)
+        syntaxString = .clearanceHex(variant.tokenString)
+        syntaxNumber = .clearanceHex(variant.tokenNumber)
+        syntaxProperty = .clearanceHex(variant.tokenProperty)
     }
 
-    private static func hex(_ value: UInt32, alpha: CGFloat = 1.0) -> NSColor {
-        let red = CGFloat((value >> 16) & 0xFF) / 255.0
-        let green = CGFloat((value >> 8) & 0xFF) / 255.0
-        let blue = CGFloat(value & 0xFF) / 255.0
-        return NSColor(calibratedRed: red, green: green, blue: blue, alpha: alpha)
+    static let `default` = EditorPalette(variant: AppTheme.apple.palette.light)
+}
+
+private extension NSColor {
+    static func clearanceHex(_ value: String) -> NSColor {
+        let normalized = value
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .replacingOccurrences(of: "#", with: "")
+
+        let scanner = Scanner(string: normalized)
+        var hexValue: UInt64 = 0
+        guard scanner.scanHexInt64(&hexValue) else {
+            return .textColor
+        }
+
+        switch normalized.count {
+        case 6:
+            let red = CGFloat((hexValue & 0xFF0000) >> 16) / 255.0
+            let green = CGFloat((hexValue & 0x00FF00) >> 8) / 255.0
+            let blue = CGFloat(hexValue & 0x0000FF) / 255.0
+            return NSColor(calibratedRed: red, green: green, blue: blue, alpha: 1.0)
+        case 8:
+            let red = CGFloat((hexValue & 0xFF000000) >> 24) / 255.0
+            let green = CGFloat((hexValue & 0x00FF0000) >> 16) / 255.0
+            let blue = CGFloat((hexValue & 0x0000FF00) >> 8) / 255.0
+            let alpha = CGFloat(hexValue & 0x000000FF) / 255.0
+            return NSColor(calibratedRed: red, green: green, blue: blue, alpha: alpha)
+        default:
+            return .textColor
+        }
     }
 }

@@ -3,6 +3,7 @@ import SwiftUI
 import WebKit
 
 struct WorkspaceView: View {
+    @ObservedObject private var appSettings: AppSettings
     @StateObject private var viewModel: WorkspaceViewModel
     @StateObject private var interactionState = WorkspaceInteractionState()
     @State private var isPopOutDropTargeted = false
@@ -17,6 +18,7 @@ struct WorkspaceView: View {
         appSettings: AppSettings = AppSettings(),
         popoutWindowController: PopoutWindowController = PopoutWindowController()
     ) {
+        _appSettings = ObservedObject(wrappedValue: appSettings)
         _viewModel = StateObject(wrappedValue: WorkspaceViewModel(appSettings: appSettings))
         self.popoutWindowController = popoutWindowController
     }
@@ -26,6 +28,7 @@ struct WorkspaceView: View {
             RecentFilesSidebar(
                 entries: viewModel.recentFilesStore.entries,
                 selectedPath: $viewModel.selectedRecentPath,
+                appearance: $appSettings.appearance,
                 onOpenFile: { openDocumentFromPicker() }
             ) { entry in
                 selectRecentEntry(entry)
@@ -44,6 +47,8 @@ struct WorkspaceView: View {
                             onOpenLinkedDocument: { linkedURL in
                                 _ = openDocument(linkedURL)
                             },
+                            theme: appSettings.theme,
+                            appearance: appSettings.appearance,
                             mode: $viewModel.mode
                         )
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -234,7 +239,11 @@ struct WorkspaceView: View {
             return
         }
 
-        popoutWindowController.openWindow(for: session, mode: viewModel.mode)
+        popoutWindowController.openWindow(
+            for: session,
+            mode: viewModel.mode,
+            appSettings: appSettings
+        )
     }
 
     @discardableResult
@@ -249,7 +258,11 @@ struct WorkspaceView: View {
 
     private func popOut(entry: RecentFileEntry) {
         if let session = popOutSession(for: entry.fileURL) {
-            popoutWindowController.openWindow(for: session, mode: viewModel.mode)
+            popoutWindowController.openWindow(
+                for: session,
+                mode: viewModel.mode,
+                appSettings: appSettings
+            )
         }
     }
 
@@ -273,7 +286,11 @@ struct WorkspaceView: View {
             return false
         }
 
-        popoutWindowController.openWindow(for: session, mode: viewModel.mode)
+        popoutWindowController.openWindow(
+            for: session,
+            mode: viewModel.mode,
+            appSettings: appSettings
+        )
         return true
     }
 
@@ -351,7 +368,11 @@ struct WorkspaceView: View {
         }
 
         let parsed = FrontmatterParser().parse(markdown: session.content)
-        let html = RenderedHTMLBuilder().build(document: parsed)
+        let html = RenderedHTMLBuilder().build(
+            document: parsed,
+            theme: appSettings.theme,
+            appearance: appSettings.appearance
+        )
         let state = interactionState
         state.printJob = RenderedDocumentPrintJob(
             html: html,

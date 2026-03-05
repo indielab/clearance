@@ -8,8 +8,12 @@ final class PopoutWindowController {
     private var windowDelegates: [ObjectIdentifier: PopoutWindowDelegate] = [:]
     private var titleSubscriptions: [ObjectIdentifier: AnyCancellable] = [:]
 
-    func openWindow(for session: DocumentSession, mode: WorkspaceMode) {
-        let content = PopoutDocumentView(session: session, initialMode: mode)
+    func openWindow(for session: DocumentSession, mode: WorkspaceMode, appSettings: AppSettings) {
+        let content = PopoutDocumentView(
+            session: session,
+            initialMode: mode,
+            appSettings: appSettings
+        )
         let hostingController = NSHostingController(rootView: content)
 
         let window = NSWindow(contentViewController: hostingController)
@@ -69,13 +73,15 @@ private final class PopoutWindowDelegate: NSObject, NSWindowDelegate {
 
 private struct PopoutDocumentView: View {
     @ObservedObject var session: DocumentSession
+    @ObservedObject var appSettings: AppSettings
     @State private var mode: WorkspaceMode
     @State private var isOutlineVisible = true
     @State private var headingScrollSequence = 0
     @State private var headingScrollRequest: HeadingScrollRequest?
 
-    init(session: DocumentSession, initialMode: WorkspaceMode) {
+    init(session: DocumentSession, initialMode: WorkspaceMode, appSettings: AppSettings) {
         self.session = session
+        self.appSettings = appSettings
         _mode = State(initialValue: initialMode)
     }
 
@@ -89,6 +95,8 @@ private struct PopoutDocumentView: View {
                 onOpenLinkedDocument: { linkedURL in
                     NotificationCenter.default.post(name: .clearanceOpenURLs, object: [linkedURL])
                 },
+                theme: appSettings.theme,
+                appearance: appSettings.appearance,
                 mode: $mode
             )
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -105,6 +113,7 @@ private struct PopoutDocumentView: View {
             }
         }
         .animation(.snappy(duration: 0.2), value: isOutlineVisible && mode == .view && !parsed.headings.isEmpty)
+        .preferredColorScheme(preferredColorScheme)
         .toolbarRole(.editor)
         .toolbar {
             if mode == .view && !parsed.headings.isEmpty {
@@ -133,6 +142,17 @@ private struct PopoutDocumentView: View {
         .frame(minWidth: 640, minHeight: 400)
         .onChange(of: session.id) { _, _ in
             headingScrollRequest = nil
+        }
+    }
+
+    private var preferredColorScheme: ColorScheme? {
+        switch appSettings.appearance {
+        case .system:
+            return nil
+        case .light:
+            return .light
+        case .dark:
+            return .dark
         }
     }
 }

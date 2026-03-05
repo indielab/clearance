@@ -5,6 +5,8 @@ struct DocumentSurfaceView: View {
     let parsedDocument: ParsedMarkdownDocument
     let headingScrollRequest: HeadingScrollRequest?
     let onOpenLinkedDocument: (URL) -> Void
+    let theme: AppTheme
+    let appearance: AppearancePreference
     @Binding var mode: WorkspaceMode
 
     var body: some View {
@@ -14,6 +16,8 @@ struct DocumentSurfaceView: View {
                 document: parsedDocument,
                 sourceDocumentURL: session.url,
                 headingScrollRequest: headingScrollRequest,
+                theme: theme,
+                appearance: appearance,
                 onOpenLinkedDocument: onOpenLinkedDocument
             )
         case .edit:
@@ -21,7 +25,9 @@ struct DocumentSurfaceView: View {
                 text: Binding(
                     get: { session.content },
                     set: { session.content = $0 }
-                )
+                ),
+                theme: theme,
+                appearance: appearance
             )
         }
     }

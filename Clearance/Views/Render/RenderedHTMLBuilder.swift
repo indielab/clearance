@@ -14,7 +14,11 @@ struct RenderedHTMLBuilder {
     private let jsKeywordRegex = try! NSRegularExpression(pattern: "\\b(?:as|async|await|break|case|catch|class|const|continue|debugger|default|delete|do|else|enum|export|extends|false|finally|for|from|function|if|import|in|instanceof|interface|let|new|null|private|protected|public|readonly|return|static|switch|this|throw|true|try|type|typeof|var|void|while|with|yield)\\b")
     private let genericKeywordRegex = try! NSRegularExpression(pattern: "\\b(?:if|else|for|while|switch|case|break|continue|return|func|function|class|struct|enum|let|var|const|import|from|export|true|false|null|nil)\\b")
 
-    func build(document: ParsedMarkdownDocument) -> String {
+    func build(
+        document: ParsedMarkdownDocument,
+        theme: AppTheme = .apple,
+        appearance: AppearancePreference = .system
+    ) -> String {
         let bodyHTML = (try? Down(markdownString: document.body).toHTML()) ?? "<pre>\(escapeHTML(document.body))</pre>"
         let highlightedBodyHTML = highlightCodeBlocks(in: bodyHTML)
         let frontmatterHTML = frontmatterTableHTML(from: document.flattenedFrontmatter)
@@ -27,7 +31,7 @@ struct RenderedHTMLBuilder {
           <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />
           <meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; style-src 'unsafe-inline'; img-src data: file: https: http:;\" />
           <style>
-          \(stylesheet())
+          \(themedStylesheet(theme: theme, appearance: appearance))
           </style>
         </head>
         <body>
@@ -207,6 +211,65 @@ struct RenderedHTMLBuilder {
             .replacingOccurrences(of: "&amp;", with: "&")
     }
 
+    private func themedStylesheet(theme: AppTheme, appearance: AppearancePreference) -> String {
+        let palette = theme.palette
+        let variableCSS: String
+
+        switch appearance {
+        case .system:
+            variableCSS = """
+            :root {
+              color-scheme: light dark;
+              \(cssVariables(for: palette.light))
+            }
+            @media (prefers-color-scheme: dark) {
+              :root {
+                \(cssVariables(for: palette.dark))
+              }
+            }
+            """
+        case .light:
+            variableCSS = """
+            :root {
+              color-scheme: light;
+              \(cssVariables(for: palette.light))
+            }
+            """
+        case .dark:
+            variableCSS = """
+            :root {
+              color-scheme: dark;
+              \(cssVariables(for: palette.dark))
+            }
+            """
+        }
+
+        return "\(variableCSS)\n\(stylesheet())"
+    }
+
+    private func cssVariables(for variant: ThemeVariant) -> String {
+        """
+        --bg: \(variant.background);
+        --surface: \(variant.surface);
+        --surface-border: \(variant.surfaceBorder);
+        --text: \(variant.text);
+        --muted: \(variant.muted);
+        --heading: \(variant.heading);
+        --link: \(variant.link);
+        --inline-code-bg: \(variant.inlineCodeBackground);
+        --inline-code-text: \(variant.inlineCodeText);
+        --code-bg: \(variant.codeBackground);
+        --code-text: \(variant.codeText);
+        --quote: \(variant.quote);
+        --rule: \(variant.rule);
+        --token-comment: \(variant.tokenComment);
+        --token-keyword: \(variant.tokenKeyword);
+        --token-string: \(variant.tokenString);
+        --token-number: \(variant.tokenNumber);
+        --token-property: \(variant.tokenProperty);
+        """
+    }
+
     private func stylesheet() -> String {
         if let cssURL = Bundle.main.url(forResource: "render", withExtension: "css"),
            let css = try? String(contentsOf: cssURL) {
@@ -214,52 +277,9 @@ struct RenderedHTMLBuilder {
         }
 
         return """
-        :root {
-          color-scheme: light dark;
-          --bg: #f3f5f9;
-          --surface: #ffffff;
-          --border: rgba(97, 112, 138, 0.26);
-          --text: #1f2733;
-          --muted: #5c697c;
-          --heading: #2c62d6;
-          --link: #2f6fe0;
-          --code-bg: #0f172a;
-          --code-text: #d5e2ff;
-          --inline-bg: rgba(47, 111, 224, 0.14);
-          --inline-text: #2757a8;
-          --quote: #4f75ba;
-          --rule: rgba(97, 112, 138, 0.24);
-          --token-comment: #7c8aa0;
-          --token-keyword: #7a3fe0;
-          --token-string: #0b7a65;
-          --token-number: #b05a00;
-          --token-property: #2a6bb5;
-        }
-        @media (prefers-color-scheme: dark) {
-          :root {
-            --bg: #0e1118;
-            --surface: #141a23;
-            --border: rgba(144, 161, 190, 0.24);
-            --text: #d5deeb;
-            --muted: #97a5ba;
-            --heading: #8ca8ff;
-            --link: #90b2ff;
-            --code-bg: #0a1020;
-            --code-text: #dce6ff;
-            --inline-bg: rgba(119, 157, 220, 0.22);
-            --inline-text: #a6c7ff;
-            --quote: #79a9ff;
-            --rule: rgba(144, 161, 190, 0.26);
-            --token-comment: #8fa2c2;
-            --token-keyword: #b39bff;
-            --token-string: #7dd7b8;
-            --token-number: #ffb86b;
-            --token-property: #8cb8ff;
-          }
-        }
         body { margin: 0; font-family: 'SF Pro Text', 'Inter', 'Helvetica Neue', sans-serif; font-size: 15px; line-height: 1.66; background: var(--bg); color: var(--text); }
         .document { max-width: 860px; margin: 32px auto; padding: 0 24px 64px; }
-        .frontmatter { background: var(--surface); border: 1px solid var(--border); border-radius: 0; padding: 12px 16px; margin-bottom: 22px; }
+        .frontmatter { background: var(--surface); border: 1px solid var(--surface-border); border-radius: 0; padding: 12px 16px; margin-bottom: 22px; }
         .frontmatter h2 { margin: 0 0 8px; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
         table { width: 100%; border-collapse: collapse; }
         th, td { text-align: left; padding: 8px 10px; vertical-align: top; border-top: 1px solid var(--rule); font-size: 12.5px; }
@@ -274,7 +294,7 @@ struct RenderedHTMLBuilder {
         .markdown a { color: var(--link); }
         .markdown blockquote { border-left: 3px solid var(--quote); margin-left: 0; padding-left: 14px; color: var(--muted); }
         .markdown hr { border: none; border-top: 1px solid var(--rule); }
-        .markdown code { font-family: 'SF Mono', Menlo, Monaco, monospace; background: var(--inline-bg); color: var(--inline-text); padding: 2px 6px; border-radius: 6px; font-size: 0.92em; }
+        .markdown code { font-family: 'SF Mono', Menlo, Monaco, monospace; background: var(--inline-code-bg); color: var(--inline-code-text); padding: 2px 6px; border-radius: 6px; font-size: 0.92em; }
         .markdown pre { background: var(--code-bg); color: var(--code-text); padding: 14px; border-radius: 8px; overflow-x: clip; white-space: pre-wrap; overflow-wrap: anywhere; word-break: break-word; }
         .markdown pre code { background: transparent; color: inherit; padding: 0; font-size: 0.92em; white-space: inherit; overflow-wrap: inherit; word-break: inherit; display: block; }
         .markdown pre code .hl-comment { color: var(--token-comment); }
