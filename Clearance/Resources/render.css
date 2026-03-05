@@ -53,10 +53,10 @@ body {
 .frontmatter {
   background: var(--surface);
   border: 1px solid var(--surface-border);
-  border-radius: 14px;
+  border-radius: 0;
   padding: 14px 18px;
   margin-bottom: 20px;
-  box-shadow: var(--surface-shadow);
+  box-shadow: none;
 }
 
 .frontmatter h2 {
@@ -88,11 +88,11 @@ th {
 }
 
 .markdown {
-  background: var(--surface);
-  border: 1px solid var(--surface-border);
-  border-radius: 14px;
-  box-shadow: var(--surface-shadow);
-  padding: 28px;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 0;
 }
 
 .markdown h1,
