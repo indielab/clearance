@@ -226,7 +226,7 @@ jobs:
           printf '%s' "$SPARKLE_PRIVATE_ED_KEY" > "$ED_KEY_FILE"
 
           "$GENERATE_APPCAST" "$APPCAST_DIR" \
-            --download-url-prefix "https://github.com/${GITHUB_REPOSITORY}/releases/download/${GITHUB_REF_NAME}" \
+            --download-url-prefix "https://github.com/${GITHUB_REPOSITORY}/releases/download/${GITHUB_REF_NAME}/" \
             --ed-key-file "$ED_KEY_FILE"
 
           cp "$APPCAST_DIR/appcast.xml" "$ARTIFACTS_DIR/appcast.xml"
