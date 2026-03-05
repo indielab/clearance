@@ -1,7 +1,16 @@
 import SwiftUI
 
 struct WorkspaceView: View {
-    @StateObject private var viewModel = WorkspaceViewModel()
+    @StateObject private var viewModel: WorkspaceViewModel
+    private let popoutWindowController: PopoutWindowController
+
+    init(
+        appSettings: AppSettings = AppSettings(),
+        popoutWindowController: PopoutWindowController = PopoutWindowController()
+    ) {
+        _viewModel = StateObject(wrappedValue: WorkspaceViewModel(appSettings: appSettings))
+        self.popoutWindowController = popoutWindowController
+    }
 
     var body: some View {
         NavigationSplitView {
@@ -12,18 +21,7 @@ struct WorkspaceView: View {
         } detail: {
             Group {
                 if let session = viewModel.activeSession {
-                    switch viewModel.mode {
-                    case .view:
-                        let parsed = FrontmatterParser().parse(markdown: session.content)
-                        RenderedMarkdownView(document: parsed)
-                    case .edit:
-                        CodeMirrorEditorView(
-                            text: Binding(
-                                get: { session.content },
-                                set: { session.content = $0 }
-                            )
-                        )
-                    }
+                    DocumentSurfaceView(session: session, mode: $viewModel.mode)
                 } else {
                     ContentUnavailableView("Open a Markdown File", systemImage: "doc.text")
                 }
@@ -46,6 +44,24 @@ struct WorkspaceView: View {
                     viewModel.promptAndOpenFile()
                 }
             }
+            ToolbarItem(placement: .automatic) {
+                Button("Pop Out") {
+                    guard let session = viewModel.activeSession else {
+                        return
+                    }
+
+                    popoutWindowController.openWindow(for: session, mode: viewModel.mode)
+                }
+                .disabled(viewModel.activeSession == nil)
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .clearanceOpenURLs)) { notification in
+            guard let urls = notification.object as? [URL],
+                  let firstURL = urls.first else {
+                return
+            }
+
+            viewModel.open(url: firstURL)
         }
         .alert("Could Not Open File", isPresented: Binding(
             get: { viewModel.errorMessage != nil },

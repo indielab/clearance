@@ -4,18 +4,22 @@ import Foundation
 final class WorkspaceViewModel: ObservableObject {
     @Published var activeSession: DocumentSession?
     @Published var errorMessage: String?
-    @Published var mode: WorkspaceMode = .view
+    @Published var mode: WorkspaceMode
 
     let recentFilesStore: RecentFilesStore
 
     private let openPanelService: OpenPanelServicing
+    private let appSettings: AppSettings
 
     init(
         recentFilesStore: RecentFilesStore = RecentFilesStore(),
-        openPanelService: OpenPanelServicing = OpenPanelService()
+        openPanelService: OpenPanelServicing = OpenPanelService(),
+        appSettings: AppSettings = AppSettings()
     ) {
         self.recentFilesStore = recentFilesStore
         self.openPanelService = openPanelService
+        self.appSettings = appSettings
+        mode = appSettings.defaultOpenMode
     }
 
     func promptAndOpenFile() {
@@ -35,6 +39,7 @@ final class WorkspaceViewModel: ObservableObject {
             let session = try DocumentSession(url: url)
             activeSession = session
             recentFilesStore.add(url: url)
+            mode = appSettings.defaultOpenMode
             errorMessage = nil
         } catch {
             errorMessage = "Failed to open \(url.path): \(error.localizedDescription)"
