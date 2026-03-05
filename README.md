@@ -51,6 +51,9 @@ Tag pushes (`v*`) run `.github/workflows/release.yml` to:
 - Package `Clearance-<version>-macOS.zip`.
 - Generate and sign `appcast.xml` with Sparkle EdDSA keys.
 - Publish both files to the GitHub Release.
+- Automatically set:
+  - `CFBundleShortVersionString` from the git tag (e.g. `v0.0.5` -> `0.0.5`)
+  - `CFBundleVersion` from `GITHUB_RUN_NUMBER` (strictly increasing integer)
 
 The app uses:
 

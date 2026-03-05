@@ -50,6 +50,8 @@ jobs:
           SPARKLE_PUBLIC_ED_KEY: ${{ secrets.SPARKLE_PUBLIC_ED_KEY }}
         run: |
           set -euo pipefail
+          VERSION="${GITHUB_REF_NAME#v}"
+          BUILD_NUMBER="${GITHUB_RUN_NUMBER}"
 
           xcodegen generate
           xcodebuild \
@@ -59,6 +61,8 @@ jobs:
             -destination 'platform=macOS' \
             -derivedDataPath "$DERIVED_DATA_PATH" \
             CODE_SIGNING_ALLOWED=NO \
+            MARKETING_VERSION="$VERSION" \
+            CURRENT_PROJECT_VERSION="$BUILD_NUMBER" \
             SPARKLE_FEED_URL="$SPARKLE_FEED_URL" \
             SPARKLE_PUBLIC_ED_KEY="$SPARKLE_PUBLIC_ED_KEY" \
             clean build
@@ -66,6 +70,22 @@ jobs:
           APP_PATH="$DERIVED_DATA_PATH/Build/Products/Release/$APP_NAME.app"
           if [ ! -d "$APP_PATH" ]; then
             echo "Expected app bundle not found at $APP_PATH"
+            exit 1
+          fi
+
+          BUILT_MARKETING_VERSION="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$APP_PATH/Contents/Info.plist")"
+          BUILT_BUILD_NUMBER="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$APP_PATH/Contents/Info.plist")"
+
+          echo "Built CFBundleShortVersionString: $BUILT_MARKETING_VERSION"
+          echo "Built CFBundleVersion: $BUILT_BUILD_NUMBER"
+
+          if [ "$BUILT_MARKETING_VERSION" != "$VERSION" ]; then
+            echo "Release version mismatch: expected $VERSION got $BUILT_MARKETING_VERSION"
+            exit 1
+          fi
+
+          if [ "$BUILT_BUILD_NUMBER" != "$BUILD_NUMBER" ]; then
+            echo "Build number mismatch: expected $BUILD_NUMBER got $BUILT_BUILD_NUMBER"
             exit 1
           fi
 
