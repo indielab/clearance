@@ -45,6 +45,15 @@ struct CodeMirrorEditorView: NSViewRepresentable {
             pushTextIfNeeded(parent.text)
         }
 
+        func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping @MainActor @Sendable (WKNavigationActionPolicy) -> Void) {
+            if LocalNavigationPolicy.allows(navigationAction.request.url) {
+                decisionHandler(.allow)
+                return
+            }
+
+            decisionHandler(.cancel)
+        }
+
         func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
             guard message.name == "textDidChange",
                   let latest = message.body as? String else {
