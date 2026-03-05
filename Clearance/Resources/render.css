@@ -1,46 +1,52 @@
 :root {
   color-scheme: light dark;
-  --bg: #f4f6fa;
-  --bg-grad: #ecf1f8;
-  --surface: rgba(252, 253, 255, 0.94);
-  --surface-border: rgba(92, 108, 137, 0.26);
-  --surface-shadow: 0 14px 34px rgba(52, 64, 84, 0.16);
-  --text: #223041;
-  --muted: #5a6678;
-  --heading: #445fd0;
-  --link: #396ad5;
-  --inline-code-bg: rgba(88, 113, 170, 0.14);
-  --inline-code-text: #35579d;
-  --code-bg: #1f2937;
-  --code-text: #dce6f8;
+  --bg: #f3f5f9;
+  --surface: #ffffff;
+  --surface-border: rgba(97, 112, 138, 0.26);
+  --text: #1f2733;
+  --muted: #5c697c;
+  --heading: #2c62d6;
+  --link: #2f6fe0;
+  --inline-code-bg: rgba(47, 111, 224, 0.14);
+  --inline-code-text: #2757a8;
+  --code-bg: #0f172a;
+  --code-text: #d5e2ff;
   --quote: #4f75ba;
-  --rule: rgba(92, 108, 137, 0.24);
+  --rule: rgba(97, 112, 138, 0.24);
+  --token-comment: #7c8aa0;
+  --token-keyword: #7a3fe0;
+  --token-string: #0b7a65;
+  --token-number: #b05a00;
+  --token-property: #2a6bb5;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #0f141d;
-    --bg-grad: #161d29;
-    --surface: rgba(20, 28, 40, 0.9);
-    --surface-border: rgba(128, 145, 176, 0.25);
-    --surface-shadow: 0 18px 38px rgba(0, 0, 0, 0.52);
-    --text: #d4deef;
-    --muted: #9ca9bf;
-    --heading: #8da2ff;
-    --link: #8da2ff;
-    --inline-code-bg: rgba(109, 138, 195, 0.2);
-    --inline-code-text: #9dc2ff;
-    --code-bg: #0b111a;
-    --code-text: #dce6f8;
-    --quote: #78a5f6;
-    --rule: rgba(128, 145, 176, 0.24);
+    --bg: #0e1118;
+    --surface: #141a23;
+    --surface-border: rgba(144, 161, 190, 0.24);
+    --text: #d5deeb;
+    --muted: #97a5ba;
+    --heading: #8ca8ff;
+    --link: #90b2ff;
+    --inline-code-bg: rgba(119, 157, 220, 0.22);
+    --inline-code-text: #a6c7ff;
+    --code-bg: #0a1020;
+    --code-text: #dce6ff;
+    --quote: #79a9ff;
+    --rule: rgba(144, 161, 190, 0.26);
+    --token-comment: #8fa2c2;
+    --token-keyword: #b39bff;
+    --token-string: #7dd7b8;
+    --token-number: #ffb86b;
+    --token-property: #8cb8ff;
   }
 }
 
 body {
   margin: 0;
   font-family: "SF Pro Text", "Inter", "Helvetica Neue", sans-serif;
-  background: linear-gradient(180deg, var(--bg-grad) 0%, var(--bg) 240px);
+  background: var(--bg);
   color: var(--text);
 }
 
@@ -56,7 +62,6 @@ body {
   border-radius: 0;
   padding: 14px 18px;
   margin-bottom: 20px;
-  box-shadow: none;
 }
 
 .frontmatter h2 {
@@ -129,7 +134,7 @@ th {
 .markdown pre {
   background: var(--code-bg);
   color: var(--code-text);
-  border-radius: 10px;
+  border-radius: 8px;
   padding: 14px;
   overflow-x: auto;
 }
@@ -146,4 +151,24 @@ th {
   color: var(--inline-code-text);
   border-radius: 6px;
   padding: 2px 6px;
+}
+
+.markdown pre code .hl-comment {
+  color: var(--token-comment);
+}
+
+.markdown pre code .hl-keyword {
+  color: var(--token-keyword);
+}
+
+.markdown pre code .hl-string {
+  color: var(--token-string);
+}
+
+.markdown pre code .hl-number {
+  color: var(--token-number);
+}
+
+.markdown pre code .hl-property {
+  color: var(--token-property);
 }

@@ -12,7 +12,7 @@ struct RenderedHTMLBuilder {
         <head>
           <meta charset=\"utf-8\" />
           <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />
-          <meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; style-src 'unsafe-inline'; img-src data: file:;\" />
+          <meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: file:;\" />
           <style>
           \(stylesheet())
           </style>
@@ -22,6 +22,7 @@ struct RenderedHTMLBuilder {
             \(frontmatterHTML)
             <article class=\"markdown\">\(bodyHTML)</article>
           </main>
+          <script>\(syntaxHighlighterScript())</script>
         </body>
         </html>
         """
@@ -58,29 +59,45 @@ struct RenderedHTMLBuilder {
         return """
         :root {
           color-scheme: light dark;
-          --bg: #f4f6fa;
-          --surface: rgba(252, 253, 255, 0.94);
-          --border: rgba(92, 108, 137, 0.26);
-          --text: #223041;
-          --muted: #5a6678;
-          --heading: #445fd0;
-          --code-bg: #1f2937;
-          --code-text: #dce6f8;
-          --inline-bg: rgba(88, 113, 170, 0.14);
-          --inline-text: #35579d;
+          --bg: #f3f5f9;
+          --surface: #ffffff;
+          --border: rgba(97, 112, 138, 0.26);
+          --text: #1f2733;
+          --muted: #5c697c;
+          --heading: #2c62d6;
+          --link: #2f6fe0;
+          --code-bg: #0f172a;
+          --code-text: #d5e2ff;
+          --inline-bg: rgba(47, 111, 224, 0.14);
+          --inline-text: #2757a8;
+          --quote: #4f75ba;
+          --rule: rgba(97, 112, 138, 0.24);
+          --token-comment: #7c8aa0;
+          --token-keyword: #7a3fe0;
+          --token-string: #0b7a65;
+          --token-number: #b05a00;
+          --token-property: #2a6bb5;
         }
         @media (prefers-color-scheme: dark) {
           :root {
-            --bg: #0f141d;
-            --surface: rgba(20, 28, 40, 0.9);
-            --border: rgba(128, 145, 176, 0.25);
-            --text: #d4deef;
-            --muted: #9ca9bf;
-            --heading: #8da2ff;
-            --code-bg: #0b111a;
-            --code-text: #dce6f8;
-            --inline-bg: rgba(109, 138, 195, 0.2);
-            --inline-text: #9dc2ff;
+            --bg: #0e1118;
+            --surface: #141a23;
+            --border: rgba(144, 161, 190, 0.24);
+            --text: #d5deeb;
+            --muted: #97a5ba;
+            --heading: #8ca8ff;
+            --link: #90b2ff;
+            --code-bg: #0a1020;
+            --code-text: #dce6ff;
+            --inline-bg: rgba(119, 157, 220, 0.22);
+            --inline-text: #a6c7ff;
+            --quote: #79a9ff;
+            --rule: rgba(144, 161, 190, 0.26);
+            --token-comment: #8fa2c2;
+            --token-keyword: #b39bff;
+            --token-string: #7dd7b8;
+            --token-number: #ffb86b;
+            --token-property: #8cb8ff;
           }
         }
         body { margin: 0; font-family: 'SF Pro Text', 'Inter', 'Helvetica Neue', sans-serif; background: var(--bg); color: var(--text); }
@@ -88,13 +105,98 @@ struct RenderedHTMLBuilder {
         .frontmatter { background: var(--surface); border: 1px solid var(--border); border-radius: 0; padding: 12px 16px; margin-bottom: 22px; }
         .frontmatter h2 { margin: 0 0 8px; font-size: 14px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
         table { width: 100%; border-collapse: collapse; }
-        th, td { text-align: left; padding: 8px 10px; vertical-align: top; border-top: 1px solid var(--border); font-size: 13px; }
+        th, td { text-align: left; padding: 8px 10px; vertical-align: top; border-top: 1px solid var(--rule); font-size: 13px; }
         th { width: 35%; color: var(--muted); font-weight: 600; }
         .markdown { background: transparent; border: none; border-radius: 0; padding: 0; }
         .markdown h1, .markdown h2, .markdown h3 { color: var(--heading); font-family: 'SF Pro Display', 'Inter', 'Helvetica Neue', sans-serif; font-weight: 700; }
-        .markdown p { line-height: 1.65; }
+        .markdown p, .markdown li { line-height: 1.65; }
+        .markdown a { color: var(--link); }
+        .markdown blockquote { border-left: 3px solid var(--quote); margin-left: 0; padding-left: 14px; color: var(--muted); }
+        .markdown hr { border: none; border-top: 1px solid var(--rule); }
         .markdown code { font-family: 'SF Mono', Menlo, Monaco, monospace; background: var(--inline-bg); color: var(--inline-text); padding: 2px 6px; border-radius: 6px; font-size: 0.9em; }
-        .markdown pre { background: var(--code-bg); color: var(--code-text); padding: 14px; border-radius: 10px; overflow-x: auto; }
+        .markdown pre { background: var(--code-bg); color: var(--code-text); padding: 14px; border-radius: 8px; overflow-x: auto; }
+        .markdown pre code { background: transparent; color: inherit; padding: 0; }
+        .markdown pre code .hl-comment { color: var(--token-comment); }
+        .markdown pre code .hl-keyword { color: var(--token-keyword); }
+        .markdown pre code .hl-string { color: var(--token-string); }
+        .markdown pre code .hl-number { color: var(--token-number); }
+        .markdown pre code .hl-property { color: var(--token-property); }
+        """
+    }
+
+    private func syntaxHighlighterScript() -> String {
+        """
+        (function() {
+          function escapeHTML(text) {
+            return text
+              .replace(/&/g, '&amp;')
+              .replace(/</g, '&lt;')
+              .replace(/>/g, '&gt;');
+          }
+
+          function annotate(code, language) {
+            var html = escapeHTML(code);
+            const placeholders = [];
+
+            function stash(regex, cssClass) {
+              html = html.replace(regex, function(match) {
+                const token = "\\u0000" + placeholders.length + "\\u0000";
+                placeholders.push('<span class="' + cssClass + '">' + match + '</span>');
+                return token;
+              });
+            }
+
+            const languageName = language.toLowerCase();
+            const isYAML = /^(yaml|yml)$/.test(languageName);
+            const isShell = /^(bash|sh|zsh|shell)$/.test(languageName);
+            const isSwift = languageName === 'swift';
+            const isJSLanguage = /^(js|mjs|cjs|jsx|ts|tsx|typescript|javascript|json|jsonc)$/.test(languageName);
+
+            stash(/"(?:\\\\.|[^"\\\\])*"|'(?:\\\\.|[^'\\\\])*'|`(?:\\\\.|[^`\\\\])*`/g, 'hl-string');
+
+            if (isYAML || isShell) {
+              stash(/#.*$/gm, 'hl-comment');
+            } else {
+              stash(/\\/\\*[\\s\\S]*?\\*\\//g, 'hl-comment');
+              stash(/\\/\\/[^\\n]*/g, 'hl-comment');
+            }
+
+            html = html.replace(/\\b\\d+(?:\\.\\d+)?\\b/g, '<span class="hl-number">$&</span>');
+
+            if (isYAML) {
+              html = html.replace(/(^|\\n)(\\s*[-?]?\\s*)([A-Za-z0-9_.-]+)(\\s*:)/g, '$1$2<span class="hl-property">$3</span>$4');
+              html = html.replace(/\\b(?:true|false|null|yes|no|on|off)\\b/gi, '<span class="hl-keyword">$&</span>');
+            } else if (isSwift) {
+              html = html.replace(/\\b(?:actor|as|associatedtype|async|await|break|case|catch|class|continue|default|defer|do|else|enum|extension|fallthrough|false|for|func|guard|if|import|in|init|inout|internal|is|let|nil|operator|private|protocol|public|repeat|return|self|static|struct|subscript|super|switch|throw|throws|true|try|typealias|var|where|while)\\b/g, '<span class="hl-keyword">$&</span>');
+            } else if (isJSLanguage) {
+              html = html.replace(/\\b(?:as|async|await|break|case|catch|class|const|continue|debugger|default|delete|do|else|enum|export|extends|false|finally|for|from|function|if|import|in|instanceof|interface|let|new|null|private|protected|public|readonly|return|static|switch|this|throw|true|try|type|typeof|var|void|while|with|yield)\\b/g, '<span class="hl-keyword">$&</span>');
+            } else {
+              html = html.replace(/\\b(?:if|else|for|while|switch|case|break|continue|return|func|function|class|struct|enum|let|var|const|import|from|export|true|false|null|nil)\\b/g, '<span class="hl-keyword">$&</span>');
+            }
+
+            html = html.replace(/\\u0000(\\d+)\\u0000/g, function(_, index) {
+              return placeholders[Number(index)] || '';
+            });
+
+            return html;
+          }
+
+          function applySyntaxHighlighting() {
+            document.querySelectorAll('pre > code').forEach(function(codeBlock) {
+              const languageClass = Array.from(codeBlock.classList).find(function(className) {
+                return className.indexOf('language-') === 0;
+              });
+              const language = languageClass ? languageClass.slice(9) : '';
+              codeBlock.innerHTML = annotate(codeBlock.textContent || '', language);
+            });
+          }
+
+          if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', applySyntaxHighlighting);
+          } else {
+            applySyntaxHighlighting();
+          }
+        })();
         """
     }
 

@@ -136,13 +136,23 @@ final class EditorTextView: NSTextView {
 final class MarkdownSyntaxHighlighter {
     private let headingRegex = try! NSRegularExpression(pattern: "(?m)^(#{1,6})\\s+(.+)$")
     private let frontmatterRegex = try! NSRegularExpression(pattern: "(?s)\\A---\\n.*?\\n---\\n?")
-    private let fencedCodeRegex = try! NSRegularExpression(pattern: "(?s)```[^\\n]*\\n.*?\\n```")
+    private let fencedCodeRegex = try! NSRegularExpression(pattern: "(?s)```([A-Za-z0-9_+-]*)[^\\n]*\\n(.*?)\\n```")
     private let inlineCodeRegex = try! NSRegularExpression(pattern: "`[^`\\n]+`")
     private let linkRegex = try! NSRegularExpression(pattern: "\\[[^\\]]+\\]\\([^\\)]+\\)")
     private let strongRegex = try! NSRegularExpression(pattern: "(\\*\\*|__)(?=\\S)(.+?\\S)\\1")
     private let emphasisRegex = try! NSRegularExpression(pattern: "(\\*|_)(?=\\S)(.+?\\S)\\1")
     private let blockquoteRegex = try! NSRegularExpression(pattern: "(?m)^>.*$")
     private let listMarkerRegex = try! NSRegularExpression(pattern: "(?m)^\\s*(?:[-*+] |\\d+\\. )")
+    private let codeStringRegex = try! NSRegularExpression(pattern: "\"(?:\\\\.|[^\"\\\\])*\"|'(?:\\\\.|[^'\\\\])*'|`(?:\\\\.|[^`\\\\])*`")
+    private let codeNumberRegex = try! NSRegularExpression(pattern: "\\b\\d+(?:\\.\\d+)?\\b")
+    private let codeLineCommentRegex = try! NSRegularExpression(pattern: "//.*$", options: [.anchorsMatchLines])
+    private let codeBlockCommentRegex = try! NSRegularExpression(pattern: "(?s)/\\*.*?\\*/")
+    private let hashCommentRegex = try! NSRegularExpression(pattern: "#.*$", options: [.anchorsMatchLines])
+    private let yamlKeyRegex = try! NSRegularExpression(pattern: "(?m)^\\s*(?:-\\s+)?([A-Za-z0-9_.-]+)(?=\\s*:)")
+    private let yamlLiteralRegex = try! NSRegularExpression(pattern: "\\b(?:true|false|null|yes|no|on|off)\\b", options: [.caseInsensitive])
+    private let swiftKeywordRegex = try! NSRegularExpression(pattern: "\\b(?:actor|as|associatedtype|async|await|break|case|catch|class|continue|default|defer|do|else|enum|extension|fallthrough|false|for|func|guard|if|import|in|init|inout|internal|is|let|nil|operator|private|protocol|public|repeat|return|self|static|struct|subscript|super|switch|throw|throws|true|try|typealias|var|where|while)\\b")
+    private let jsKeywordRegex = try! NSRegularExpression(pattern: "\\b(?:as|async|await|break|case|catch|class|const|continue|debugger|default|delete|do|else|enum|export|extends|false|finally|for|from|function|if|import|in|instanceof|interface|let|new|null|private|protected|public|readonly|return|static|switch|this|throw|true|try|type|typeof|var|void|while|with|yield)\\b")
+    private let genericKeywordRegex = try! NSRegularExpression(pattern: "\\b(?:if|else|for|while|switch|case|break|continue|return|func|function|class|struct|enum|let|var|const|import|from|export|true|false|null|nil)\\b")
 
     func apply(to textView: NSTextView) {
         guard let storage = textView.textStorage else {
@@ -155,6 +165,7 @@ final class MarkdownSyntaxHighlighter {
 
         let fullText = storage.string
         let fullTextRange = NSRange(location: 0, length: (fullText as NSString).length)
+        let fencedCodeMatches = fencedCodeRegex.matches(in: fullText, range: fullTextRange)
 
         for match in frontmatterRegex.matches(in: fullText, range: fullTextRange) {
             storage.addAttributes(frontmatterAttributes, range: match.range)
@@ -189,8 +200,8 @@ final class MarkdownSyntaxHighlighter {
             storage.addAttributes(inlineCodeAttributes, range: match.range)
         }
 
-        for match in fencedCodeRegex.matches(in: fullText, range: fullTextRange) {
-            storage.addAttributes(fencedCodeAttributes, range: match.range)
+        for match in fencedCodeMatches {
+            applyFencedCodeHighlighting(for: match, in: storage, fullText: fullText)
         }
 
         storage.endEditing()
@@ -252,10 +263,108 @@ final class MarkdownSyntaxHighlighter {
 
     private var fencedCodeAttributes: [NSAttributedString.Key: Any] {
         [
-            .font: NSFont.monospacedSystemFont(ofSize: 13, weight: .regular),
+            .font: codeFont,
             .foregroundColor: ClearancePalette.codeBlockText,
             .backgroundColor: ClearancePalette.codeBlockBackground
         ]
+    }
+
+    private var codeFont: NSFont {
+        NSFont.monospacedSystemFont(ofSize: 13, weight: .regular)
+    }
+
+    private var codeCommentAttributes: [NSAttributedString.Key: Any] {
+        [
+            .font: codeFont,
+            .foregroundColor: ClearancePalette.syntaxComment
+        ]
+    }
+
+    private var codeKeywordAttributes: [NSAttributedString.Key: Any] {
+        [
+            .font: codeFont,
+            .foregroundColor: ClearancePalette.syntaxKeyword
+        ]
+    }
+
+    private var codeStringAttributes: [NSAttributedString.Key: Any] {
+        [
+            .font: codeFont,
+            .foregroundColor: ClearancePalette.syntaxString
+        ]
+    }
+
+    private var codeNumberAttributes: [NSAttributedString.Key: Any] {
+        [
+            .font: codeFont,
+            .foregroundColor: ClearancePalette.syntaxNumber
+        ]
+    }
+
+    private var codePropertyAttributes: [NSAttributedString.Key: Any] {
+        [
+            .font: codeFont,
+            .foregroundColor: ClearancePalette.syntaxProperty
+        ]
+    }
+
+    private func applyFencedCodeHighlighting(for match: NSTextCheckingResult, in storage: NSTextStorage, fullText: String) {
+        storage.addAttributes(fencedCodeAttributes, range: match.range)
+
+        let codeRange = match.range(at: 2)
+        guard codeRange.location != NSNotFound else {
+            return
+        }
+
+        let languageRange = match.range(at: 1)
+        let language: String
+        if languageRange.location == NSNotFound {
+            language = ""
+        } else {
+            language = (fullText as NSString).substring(with: languageRange).lowercased()
+        }
+
+        applyCodeTokenColors(in: storage, fullText: fullText, codeRange: codeRange, language: language)
+    }
+
+    private func applyCodeTokenColors(in storage: NSTextStorage, fullText: String, codeRange: NSRange, language: String) {
+        applyRegex(codeNumberRegex, attributes: codeNumberAttributes, in: storage, fullText: fullText, range: codeRange)
+
+        switch language {
+        case "yaml", "yml":
+            applyRegex(yamlLiteralRegex, attributes: codeKeywordAttributes, in: storage, fullText: fullText, range: codeRange)
+            applyRegex(yamlKeyRegex, attributes: codePropertyAttributes, in: storage, fullText: fullText, range: codeRange, captureGroup: 1)
+            applyRegex(hashCommentRegex, attributes: codeCommentAttributes, in: storage, fullText: fullText, range: codeRange)
+        case "swift":
+            applyRegex(swiftKeywordRegex, attributes: codeKeywordAttributes, in: storage, fullText: fullText, range: codeRange)
+            applyRegex(codeBlockCommentRegex, attributes: codeCommentAttributes, in: storage, fullText: fullText, range: codeRange)
+            applyRegex(codeLineCommentRegex, attributes: codeCommentAttributes, in: storage, fullText: fullText, range: codeRange)
+        case "bash", "sh", "zsh", "shell":
+            applyRegex(hashCommentRegex, attributes: codeCommentAttributes, in: storage, fullText: fullText, range: codeRange)
+            applyRegex(genericKeywordRegex, attributes: codeKeywordAttributes, in: storage, fullText: fullText, range: codeRange)
+        case "js", "mjs", "cjs", "jsx", "ts", "tsx", "typescript", "javascript", "json", "jsonc":
+            applyRegex(jsKeywordRegex, attributes: codeKeywordAttributes, in: storage, fullText: fullText, range: codeRange)
+            applyRegex(codeBlockCommentRegex, attributes: codeCommentAttributes, in: storage, fullText: fullText, range: codeRange)
+            applyRegex(codeLineCommentRegex, attributes: codeCommentAttributes, in: storage, fullText: fullText, range: codeRange)
+        default:
+            applyRegex(genericKeywordRegex, attributes: codeKeywordAttributes, in: storage, fullText: fullText, range: codeRange)
+            applyRegex(codeBlockCommentRegex, attributes: codeCommentAttributes, in: storage, fullText: fullText, range: codeRange)
+            applyRegex(codeLineCommentRegex, attributes: codeCommentAttributes, in: storage, fullText: fullText, range: codeRange)
+            applyRegex(hashCommentRegex, attributes: codeCommentAttributes, in: storage, fullText: fullText, range: codeRange)
+        }
+
+        applyRegex(codeStringRegex, attributes: codeStringAttributes, in: storage, fullText: fullText, range: codeRange)
+    }
+
+    private func applyRegex(_ regex: NSRegularExpression, attributes: [NSAttributedString.Key: Any], in storage: NSTextStorage, fullText: String, range: NSRange, captureGroup: Int = 0) {
+        for match in regex.matches(in: fullText, range: range) {
+            let matchRange = match.range(at: captureGroup)
+            guard matchRange.location != NSNotFound else {
+                continue
+            }
+
+            storage.addAttributes(attributes, range: matchRange)
+        }
     }
 
     private func headingAttributes(for level: Int) -> [NSAttributedString.Key: Any] {
@@ -281,20 +390,25 @@ final class MarkdownSyntaxHighlighter {
 }
 
 private enum ClearancePalette {
-    static let editorBackground = dynamic(light: hex(0xF4F6FA), dark: hex(0x0F141D))
-    static let text = dynamic(light: hex(0x223041), dark: hex(0xD4DEEF))
-    static let secondaryText = dynamic(light: hex(0x5A6678), dark: hex(0x9CA9BF))
-    static let heading = dynamic(light: hex(0x445FD0), dark: hex(0x8DA2FF))
-    static let frontmatter = dynamic(light: hex(0x2D8D86), dark: hex(0x76CCC5))
-    static let listMarker = dynamic(light: hex(0xD97706), dark: hex(0xF59E0B))
-    static let link = dynamic(light: hex(0x396AD5), dark: hex(0x8DA2FF))
-    static let inlineCodeText = dynamic(light: hex(0x35579D), dark: hex(0x9DC2FF))
-    static let inlineCodeBackground = dynamic(light: hex(0x5871AA, alpha: 0.18), dark: hex(0x6D8AC3, alpha: 0.24))
-    static let codeBlockText = dynamic(light: hex(0xDCE6F8), dark: hex(0xDCE6F8))
-    static let codeBlockBackground = dynamic(light: hex(0x1F2937), dark: hex(0x0B111A))
-    static let insertionPoint = dynamic(light: hex(0x396AD5), dark: hex(0x8DA2FF))
-    static let selectionBackground = dynamic(light: hex(0x396AD5, alpha: 0.28), dark: hex(0x8DA2FF, alpha: 0.30))
-    static let selectionText = dynamic(light: hex(0x0F141D), dark: hex(0xF4F6FA))
+    static let editorBackground = dynamic(light: hex(0xF3F5F9), dark: hex(0x0E1118))
+    static let text = dynamic(light: hex(0x1F2733), dark: hex(0xD5DEEB))
+    static let secondaryText = dynamic(light: hex(0x5C697C), dark: hex(0x97A5BA))
+    static let heading = dynamic(light: hex(0x2C62D6), dark: hex(0x8CA8FF))
+    static let frontmatter = dynamic(light: hex(0x0E7490), dark: hex(0x7AD0C8))
+    static let listMarker = dynamic(light: hex(0xCB7A1A), dark: hex(0xF2B46B))
+    static let link = dynamic(light: hex(0x2F6FE0), dark: hex(0x90B2FF))
+    static let inlineCodeText = dynamic(light: hex(0x2757A8), dark: hex(0xA6C7FF))
+    static let inlineCodeBackground = dynamic(light: hex(0x2F6FE0, alpha: 0.14), dark: hex(0x779DDC, alpha: 0.22))
+    static let codeBlockText = dynamic(light: hex(0xD5E2FF), dark: hex(0xDCE6FF))
+    static let codeBlockBackground = dynamic(light: hex(0x0F172A), dark: hex(0x0A1020))
+    static let insertionPoint = dynamic(light: hex(0x2F6FE0), dark: hex(0x90B2FF))
+    static let selectionBackground = dynamic(light: hex(0x2F6FE0, alpha: 0.28), dark: hex(0x4B6290, alpha: 0.35))
+    static let selectionText = dynamic(light: hex(0x0B1220), dark: hex(0xF3F5F9))
+    static let syntaxComment = dynamic(light: hex(0x7C8AA0), dark: hex(0x8FA2C2))
+    static let syntaxKeyword = dynamic(light: hex(0x7A3FE0), dark: hex(0xB39BFF))
+    static let syntaxString = dynamic(light: hex(0x0B7A65), dark: hex(0x7DD7B8))
+    static let syntaxNumber = dynamic(light: hex(0xB05A00), dark: hex(0xFFB86B))
+    static let syntaxProperty = dynamic(light: hex(0x2A6BB5), dark: hex(0x8CB8FF))
 
     private static func dynamic(light: NSColor, dark: NSColor) -> NSColor {
         NSColor(name: nil) { appearance in

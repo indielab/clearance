@@ -35,4 +35,13 @@ final class RenderedHTMLBuilderTests: XCTestCase {
         XCTAssertTrue(html.contains("default-src 'none'"))
         XCTAssertTrue(html.contains("img-src data: file:"))
     }
+
+    func testIncludesInlineSyntaxHighlighterWithoutNetworkDependencies() {
+        let document = ParsedMarkdownDocument(body: "```swift\nlet value = 1\n```", flattenedFrontmatter: [:])
+
+        let html = RenderedHTMLBuilder().build(document: document)
+
+        XCTAssertTrue(html.contains("applySyntaxHighlighting"))
+        XCTAssertFalse(html.contains("https://"))
+    }
 }
