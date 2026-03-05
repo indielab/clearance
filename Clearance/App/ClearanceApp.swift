@@ -15,6 +15,7 @@ struct ClearanceApp: App {
                 popoutWindowController: popoutWindowController
             )
         }
+        .windowToolbarStyle(.unified)
         .commands {
             ClearanceCommands(sparkleUpdateController: sparkleUpdateController)
         }
@@ -31,10 +32,14 @@ struct WorkspaceCommandActions {
     let showViewMode: () -> Void
     let showEditMode: () -> Void
     let openInNewWindow: () -> Void
+    let goBack: () -> Void
+    let goForward: () -> Void
     let findInDocument: () -> Bool
     let findPreviousInDocument: () -> Bool
     let printDocument: () -> Bool
     let hasActiveSession: Bool
+    let canGoBack: Bool
+    let canGoForward: Bool
     let hasVisibleOutline: Bool
     let canShowOutline: Bool
 }
@@ -96,6 +101,20 @@ private struct ClearanceCommands: Commands {
             }
             .keyboardShortcut("p")
             .disabled(actions?.hasActiveSession != true)
+        }
+
+        CommandMenu("Navigate") {
+            Button("Back") {
+                actions?.goBack()
+            }
+            .keyboardShortcut("[")
+            .disabled(actions?.canGoBack != true)
+
+            Button("Forward") {
+                actions?.goForward()
+            }
+            .keyboardShortcut("]")
+            .disabled(actions?.canGoForward != true)
         }
 
         CommandGroup(after: .textEditing) {

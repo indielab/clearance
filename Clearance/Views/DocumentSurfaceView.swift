@@ -4,6 +4,7 @@ struct DocumentSurfaceView: View {
     @ObservedObject var session: DocumentSession
     let parsedDocument: ParsedMarkdownDocument
     let headingScrollRequest: HeadingScrollRequest?
+    let onOpenLinkedDocument: (URL) -> Void
     @Binding var mode: WorkspaceMode
 
     var body: some View {
@@ -11,7 +12,9 @@ struct DocumentSurfaceView: View {
         case .view:
             RenderedMarkdownView(
                 document: parsedDocument,
-                headingScrollRequest: headingScrollRequest
+                sourceDocumentURL: session.url,
+                headingScrollRequest: headingScrollRequest,
+                onOpenLinkedDocument: onOpenLinkedDocument
             )
         case .edit:
             CodeMirrorEditorView(

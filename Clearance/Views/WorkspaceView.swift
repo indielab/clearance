@@ -26,7 +26,7 @@ struct WorkspaceView: View {
             RecentFilesSidebar(
                 entries: viewModel.recentFilesStore.entries,
                 selectedPath: $viewModel.selectedRecentPath,
-                onOpenFile: { viewModel.promptAndOpenFile() }
+                onOpenFile: { openDocumentFromPicker() }
             ) { entry in
                 selectRecentEntry(entry)
             } onOpenInNewWindow: { entry in
@@ -41,6 +41,9 @@ struct WorkspaceView: View {
                             session: session,
                             parsedDocument: parsed,
                             headingScrollRequest: headingScrollRequest,
+                            onOpenLinkedDocument: { linkedURL in
+                                _ = openDocument(linkedURL)
+                            },
                             mode: $viewModel.mode
                         )
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -74,7 +77,7 @@ struct WorkspaceView: View {
                         Text("Choose a file from the sidebar, or open one directly.")
                     } actions: {
                         Button("Open Markdown…") {
-                            viewModel.promptAndOpenFile()
+                            openDocumentFromPicker()
                         }
                     }
                 }
@@ -115,49 +118,74 @@ struct WorkspaceView: View {
             })
         }
         .focusedSceneValue(\.workspaceCommandActions, WorkspaceCommandActions(
-            openFile: { viewModel.promptAndOpenFile() },
+            openFile: { openDocumentFromPicker() },
             toggleOutline: { if canShowOutlineControls { isOutlineVisible.toggle() } },
             showViewMode: { if viewModel.activeSession != nil { viewModel.mode = .view } },
             showEditMode: { if viewModel.activeSession != nil { viewModel.mode = .edit } },
             openInNewWindow: { popOutActiveSession() },
+            goBack: { _ = viewModel.navigateBack() },
+            goForward: { _ = viewModel.navigateForward() },
             findInDocument: { performFindInDocument() },
             findPreviousInDocument: { performFindPreviousInDocument() },
             printDocument: { performPrint() },
             hasActiveSession: viewModel.activeSession != nil,
+            canGoBack: viewModel.canNavigateBack,
+            canGoForward: viewModel.canNavigateForward,
             hasVisibleOutline: isOutlineVisible,
             canShowOutline: canShowOutlineControls
         ))
         .toolbarRole(.editor)
         .toolbar {
-            if canShowOutlineControls {
-                ToolbarItem(placement: .automatic) {
+            ToolbarItemGroup(placement: .navigation) {
+                Button {
+                    _ = viewModel.navigateBack()
+                } label: {
+                    Image(systemName: "chevron.backward")
+                }
+                .help("Back")
+                .controlSize(.small)
+                .disabled(!viewModel.canNavigateBack)
+
+                Button {
+                    _ = viewModel.navigateForward()
+                } label: {
+                    Image(systemName: "chevron.forward")
+                }
+                .help("Forward")
+                .controlSize(.small)
+                .disabled(!viewModel.canNavigateForward)
+            }
+
+            ToolbarItem(placement: .primaryAction) {
+                if viewModel.activeSession != nil {
+                    Picker("", selection: $viewModel.mode) {
+                        Text("View").tag(WorkspaceMode.view)
+                        Text("Edit").tag(WorkspaceMode.edit)
+                    }
+                    .labelsHidden()
+                    .pickerStyle(.segmented)
+                    .controlSize(.small)
+                    .frame(width: 124)
+                }
+            }
+
+            ToolbarItem(placement: .primaryAction) {
+                if canShowOutlineControls {
                     Button {
                         isOutlineVisible.toggle()
                     } label: {
-                        Label(
-                            isOutlineVisible ? "Hide Outline" : "Show Outline",
-                            systemImage: "sidebar.right"
-                        )
+                        Image(systemName: "sidebar.right")
                     }
+                    .controlSize(.small)
+                    .help(isOutlineVisible ? "Hide Outline" : "Show Outline")
                 }
-            }
-            ToolbarItem(placement: .primaryAction) {
-                Button {
-                    viewModel.mode = viewModel.mode == .view ? .edit : .view
-                } label: {
-                    Label(
-                        viewModel.mode == .edit ? "Done" : "Edit",
-                        systemImage: viewModel.mode == .edit ? "checkmark" : "square.and.pencil"
-                    )
-                }
-                .disabled(viewModel.activeSession == nil)
             }
         }
         .searchable(
             text: $renderedFindQuery,
             isPresented: $isRenderedSearchPresented,
             placement: .toolbar,
-            prompt: "Find In Document"
+            prompt: "Find in Document"
         )
         .onSubmit(of: .search) {
             if viewModel.mode == .view {
@@ -183,7 +211,7 @@ struct WorkspaceView: View {
                 return
             }
 
-            viewModel.open(url: firstURL)
+            _ = openDocument(firstURL)
         }
         .alert("Could Not Open File", isPresented: Binding(
             get: { viewModel.errorMessage != nil },
@@ -209,8 +237,18 @@ struct WorkspaceView: View {
         popoutWindowController.openWindow(for: session, mode: viewModel.mode)
     }
 
+    @discardableResult
+    private func openDocumentFromPicker() -> DocumentSession? {
+        viewModel.promptAndOpenFile()
+    }
+
+    @discardableResult
+    private func openDocument(_ url: URL, recordNavigation: Bool = true) -> DocumentSession? {
+        viewModel.open(url: url, recordNavigation: recordNavigation)
+    }
+
     private func popOut(entry: RecentFileEntry) {
-        if let session = viewModel.open(recentEntry: entry) {
+        if let session = popOutSession(for: entry.fileURL) {
             popoutWindowController.openWindow(for: session, mode: viewModel.mode)
         }
     }
@@ -222,7 +260,7 @@ struct WorkspaceView: View {
             return
         }
 
-        viewModel.open(recentEntry: entry)
+        _ = viewModel.open(recentEntry: entry)
     }
 
     private func popOutDraggedPath(_ path: String) -> Bool {
@@ -231,13 +269,24 @@ struct WorkspaceView: View {
             return true
         }
 
-        let url = URL(fileURLWithPath: path)
-        guard let session = viewModel.open(url: url) else {
+        guard let session = popOutSession(for: URL(fileURLWithPath: path)) else {
             return false
         }
 
         popoutWindowController.openWindow(for: session, mode: viewModel.mode)
         return true
+    }
+
+    private func popOutSession(for url: URL) -> DocumentSession? {
+        let standardizedURL = url.standardizedFileURL
+        do {
+            let session = try DocumentSession(url: standardizedURL)
+            viewModel.recentFilesStore.add(url: standardizedURL)
+            return session
+        } catch {
+            viewModel.errorMessage = "Failed to open \(standardizedURL.path): \(error.localizedDescription)"
+            return nil
+        }
     }
 
     private func requestScroll(to heading: MarkdownHeading) {
@@ -304,7 +353,10 @@ struct WorkspaceView: View {
         let parsed = FrontmatterParser().parse(markdown: session.content)
         let html = RenderedHTMLBuilder().build(document: parsed)
         let state = interactionState
-        state.printJob = RenderedDocumentPrintJob(html: html) { [weak state] in
+        state.printJob = RenderedDocumentPrintJob(
+            html: html,
+            baseURL: session.url.deletingLastPathComponent()
+        ) { [weak state] in
             state?.printJob = nil
         }
         return true
@@ -345,35 +397,48 @@ struct WorkspaceView: View {
 struct MarkdownOutlineView: View {
     let headings: [MarkdownHeading]
     let onSelectHeading: (MarkdownHeading) -> Void
+    @State private var selectedHeadingID: MarkdownHeading.ID?
 
     var body: some View {
-        VStack(spacing: 0) {
-            HStack {
-                Text("Outline")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.secondary)
-                Spacer()
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
-
-            Divider()
-
-            List(headings) { heading in
-                Button {
-                    onSelectHeading(heading)
-                } label: {
-                    Text(heading.title)
-                        .lineLimit(1)
-                        .padding(.leading, CGFloat(max(0, heading.level - 1)) * 12)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+        ScrollView {
+            LazyVStack(alignment: .leading, spacing: 3) {
+                ForEach(headings) { heading in
+                    Button {
+                        selectedHeadingID = heading.id
+                        onSelectHeading(heading)
+                    } label: {
+                        Text(heading.title)
+                            .lineLimit(1)
+                            .padding(.leading, CGFloat(max(0, heading.level - 1)) * 12)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 6)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .help(heading.title)
+                    .background(
+                        RoundedRectangle(cornerRadius: 7, style: .continuous)
+                            .fill(selectionBackgroundColor(for: heading.id))
+                    )
                 }
-                .buttonStyle(.plain)
-                .help(heading.title)
             }
-            .listStyle(.sidebar)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 10)
+        }
+        .background(Color(nsColor: .windowBackgroundColor))
+        .overlay(alignment: .leading) {
+            Divider()
         }
         .frame(minWidth: 220, idealWidth: 260, maxWidth: 320)
+    }
+
+    private func selectionBackgroundColor(for headingID: MarkdownHeading.ID) -> Color {
+        if selectedHeadingID == headingID {
+            return Color.accentColor.opacity(0.18)
+        }
+
+        return Color.clear
     }
 }
 
@@ -404,13 +469,13 @@ private final class RenderedDocumentPrintJob: NSObject, WKNavigationDelegate {
     private let completion: () -> Void
     private var hasCompleted = false
 
-    init(html: String, completion: @escaping () -> Void) {
+    init(html: String, baseURL: URL, completion: @escaping () -> Void) {
         self.webView = WKWebView(frame: NSRect(x: 0, y: 0, width: 960, height: 1200))
         self.completion = completion
         super.init()
 
         webView.navigationDelegate = self
-        webView.loadHTMLString(html, baseURL: Bundle.main.bundleURL)
+        webView.loadHTMLString(html, baseURL: baseURL)
     }
 
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {

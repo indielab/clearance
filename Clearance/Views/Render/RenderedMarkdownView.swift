@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 import WebKit
 
@@ -8,11 +9,16 @@ struct HeadingScrollRequest: Equatable {
 
 struct RenderedMarkdownView: NSViewRepresentable {
     let document: ParsedMarkdownDocument
+    let sourceDocumentURL: URL
     let headingScrollRequest: HeadingScrollRequest?
+    let onOpenLinkedDocument: (URL) -> Void
     private let builder = RenderedHTMLBuilder()
 
     func makeCoordinator() -> Coordinator {
-        Coordinator()
+        Coordinator(
+            sourceDocumentURL: sourceDocumentURL,
+            onOpenLinkedDocument: onOpenLinkedDocument
+        )
     }
 
     func makeNSView(context: Context) -> WKWebView {
@@ -26,10 +32,13 @@ struct RenderedMarkdownView: NSViewRepresentable {
     func updateNSView(_ webView: WKWebView, context: Context) {
         let html = builder.build(document: document)
         let coordinator = context.coordinator
+        coordinator.sourceDocumentURL = sourceDocumentURL
+        coordinator.onOpenLinkedDocument = onOpenLinkedDocument
+        let baseURL = sourceDocumentURL.deletingLastPathComponent()
         if coordinator.renderedHTML != html {
             coordinator.renderedHTML = html
             coordinator.pendingScrollRequest = headingScrollRequest
-            webView.loadHTMLString(html, baseURL: Bundle.main.bundleURL)
+            webView.loadHTMLString(html, baseURL: baseURL)
             return
         }
 
@@ -37,11 +46,33 @@ struct RenderedMarkdownView: NSViewRepresentable {
     }
 
     final class Coordinator: NSObject, WKNavigationDelegate {
+        var sourceDocumentURL: URL
+        var onOpenLinkedDocument: (URL) -> Void
         var renderedHTML: String?
         var pendingScrollRequest: HeadingScrollRequest?
         private var appliedScrollRequest: HeadingScrollRequest?
 
+        init(sourceDocumentURL: URL, onOpenLinkedDocument: @escaping (URL) -> Void) {
+            self.sourceDocumentURL = sourceDocumentURL
+            self.onOpenLinkedDocument = onOpenLinkedDocument
+        }
+
         func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping @MainActor @Sendable (WKNavigationActionPolicy) -> Void) {
+            if navigationAction.navigationType == .linkActivated {
+                switch MarkdownLinkRouter.action(for: navigationAction.request.url, sourceDocumentURL: sourceDocumentURL) {
+                case .allowWebView:
+                    break
+                case .openInApp(let url):
+                    onOpenLinkedDocument(url)
+                    decisionHandler(.cancel)
+                    return
+                case .openExternal(let url):
+                    NSWorkspace.shared.open(url)
+                    decisionHandler(.cancel)
+                    return
+                }
+            }
+
             if LocalNavigationPolicy.allows(navigationAction.request.url) {
                 decisionHandler(.allow)
                 return

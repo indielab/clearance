@@ -96,6 +96,47 @@ final class WorkspaceViewModelTests: XCTestCase {
         XCTAssertNil(viewModel.externalChangeDocumentName)
     }
 
+    func testNavigationHistorySupportsBackAndForward() throws {
+        let firstURL = try makeTempMarkdown(contents: "# One")
+        let secondURL = try makeTempMarkdown(contents: "# Two")
+        let defaults = UserDefaults(suiteName: UUID().uuidString)!
+        let store = RecentFilesStore(userDefaults: defaults, storageKey: "recent")
+        let viewModel = WorkspaceViewModel(recentFilesStore: store)
+
+        viewModel.open(url: firstURL)
+        viewModel.open(url: secondURL)
+
+        XCTAssertTrue(viewModel.canNavigateBack)
+        XCTAssertFalse(viewModel.canNavigateForward)
+
+        XCTAssertTrue(viewModel.navigateBack())
+        XCTAssertEqual(viewModel.activeSession?.url.path, firstURL.path)
+        XCTAssertFalse(viewModel.canNavigateBack)
+        XCTAssertTrue(viewModel.canNavigateForward)
+
+        XCTAssertTrue(viewModel.navigateForward())
+        XCTAssertEqual(viewModel.activeSession?.url.path, secondURL.path)
+        XCTAssertTrue(viewModel.canNavigateBack)
+        XCTAssertFalse(viewModel.canNavigateForward)
+    }
+
+    func testOpeningAfterBackClearsForwardHistory() throws {
+        let firstURL = try makeTempMarkdown(contents: "# One")
+        let secondURL = try makeTempMarkdown(contents: "# Two")
+        let thirdURL = try makeTempMarkdown(contents: "# Three")
+        let defaults = UserDefaults(suiteName: UUID().uuidString)!
+        let store = RecentFilesStore(userDefaults: defaults, storageKey: "recent")
+        let viewModel = WorkspaceViewModel(recentFilesStore: store)
+
+        viewModel.open(url: firstURL)
+        viewModel.open(url: secondURL)
+        XCTAssertTrue(viewModel.navigateBack())
+
+        viewModel.open(url: thirdURL)
+        XCTAssertFalse(viewModel.canNavigateForward)
+        XCTAssertTrue(viewModel.canNavigateBack)
+    }
+
     private func makeTempMarkdown(contents: String) throws -> URL {
         let directory = FileManager.default.temporaryDirectory
             .appendingPathComponent(UUID().uuidString, isDirectory: true)

@@ -86,6 +86,9 @@ private struct PopoutDocumentView: View {
                 session: session,
                 parsedDocument: parsed,
                 headingScrollRequest: headingScrollRequest,
+                onOpenLinkedDocument: { linkedURL in
+                    NotificationCenter.default.post(name: .clearanceOpenURLs, object: [linkedURL])
+                },
                 mode: $mode
             )
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -104,14 +107,16 @@ private struct PopoutDocumentView: View {
         .animation(.snappy(duration: 0.2), value: isOutlineVisible && mode == .view && !parsed.headings.isEmpty)
         .toolbarRole(.editor)
         .toolbar {
-            ToolbarItem(placement: .automatic) {
-                Button {
-                    isOutlineVisible.toggle()
-                } label: {
-                    Label(
-                        isOutlineVisible ? "Hide Outline" : "Show Outline",
-                        systemImage: "sidebar.right"
-                    )
+            if mode == .view && !parsed.headings.isEmpty {
+                ToolbarItem(placement: .automatic) {
+                    Button {
+                        isOutlineVisible.toggle()
+                    } label: {
+                        Label(
+                            isOutlineVisible ? "Hide Outline" : "Show Outline",
+                            systemImage: "sidebar.right"
+                        )
+                    }
                 }
             }
             ToolbarItem(placement: .primaryAction) {

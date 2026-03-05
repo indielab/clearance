@@ -33,7 +33,7 @@ final class RenderedHTMLBuilderTests: XCTestCase {
 
         XCTAssertTrue(html.contains("Content-Security-Policy"))
         XCTAssertTrue(html.contains("default-src 'none'"))
-        XCTAssertTrue(html.contains("img-src data: file:"))
+        XCTAssertTrue(html.contains("img-src data: file: https: http:"))
     }
 
     func testHighlightsFencedCodeBlocksWithoutNetworkDependencies() {

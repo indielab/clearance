@@ -13,6 +13,8 @@ final class WorkspaceViewModel: NSObject, ObservableObject {
     @Published var selectedRecentPath: String?
     @Published private(set) var windowTitle: String
     @Published private(set) var externalChangeDocumentName: String?
+    @Published private(set) var canNavigateBack = false
+    @Published private(set) var canNavigateForward = false
 
     let recentFilesStore: RecentFilesStore
 
@@ -21,6 +23,8 @@ final class WorkspaceViewModel: NSObject, ObservableObject {
     private var activeSessionCancellables: Set<AnyCancellable> = []
     private var externalChangeTimer: Timer?
     private weak var monitoredSession: DocumentSession?
+    private var navigationHistory: [URL] = []
+    private var navigationHistoryIndex = -1
 
     init(
         recentFilesStore: RecentFilesStore = RecentFilesStore(),
@@ -35,21 +39,22 @@ final class WorkspaceViewModel: NSObject, ObservableObject {
         super.init()
     }
 
-    func promptAndOpenFile() {
+    @discardableResult
+    func promptAndOpenFile() -> DocumentSession? {
         guard let url = openPanelService.chooseMarkdownFile() else {
-            return
+            return nil
         }
 
-        open(url: url)
+        return open(url: url)
     }
 
     @discardableResult
-    func open(recentEntry: RecentFileEntry) -> DocumentSession? {
-        open(url: recentEntry.fileURL)
+    func open(recentEntry: RecentFileEntry, recordNavigation: Bool = true) -> DocumentSession? {
+        open(url: recentEntry.fileURL, recordNavigation: recordNavigation)
     }
 
     @discardableResult
-    func open(url: URL) -> DocumentSession? {
+    func open(url: URL, recordNavigation: Bool = true, resetModeToDefault: Bool = true) -> DocumentSession? {
         let standardizedURL = url.standardizedFileURL
 
         do {
@@ -57,13 +62,52 @@ final class WorkspaceViewModel: NSObject, ObservableObject {
             activeSession = session
             recentFilesStore.add(url: standardizedURL)
             selectedRecentPath = standardizedURL.path
-            mode = appSettings.defaultOpenMode
+            if resetModeToDefault {
+                mode = appSettings.defaultOpenMode
+            }
+            if recordNavigation {
+                pushNavigationEntry(standardizedURL)
+            } else {
+                updateNavigationAvailability()
+            }
             errorMessage = nil
             return session
         } catch {
             errorMessage = "Failed to open \(standardizedURL.path): \(error.localizedDescription)"
             return nil
         }
+    }
+
+    func navigateBack() -> Bool {
+        guard navigationHistoryIndex > 0 else {
+            return false
+        }
+
+        let targetIndex = navigationHistoryIndex - 1
+        let targetURL = navigationHistory[targetIndex]
+        guard open(url: targetURL, recordNavigation: false, resetModeToDefault: false) != nil else {
+            return false
+        }
+
+        navigationHistoryIndex = targetIndex
+        updateNavigationAvailability()
+        return true
+    }
+
+    func navigateForward() -> Bool {
+        let nextIndex = navigationHistoryIndex + 1
+        guard nextIndex < navigationHistory.count else {
+            return false
+        }
+
+        let targetURL = navigationHistory[nextIndex]
+        guard open(url: targetURL, recordNavigation: false, resetModeToDefault: false) != nil else {
+            return false
+        }
+
+        navigationHistoryIndex = nextIndex
+        updateNavigationAvailability()
+        return true
     }
 
     func reloadActiveFromDisk() {
@@ -148,6 +192,27 @@ final class WorkspaceViewModel: NSObject, ObservableObject {
 
     private func updateWindowTitle(for session: DocumentSession) {
         windowTitle = session.displayTitle
+    }
+
+    private func pushNavigationEntry(_ url: URL) {
+        if navigationHistoryIndex >= 0,
+           navigationHistory[navigationHistoryIndex].path == url.path {
+            updateNavigationAvailability()
+            return
+        }
+
+        if navigationHistoryIndex < navigationHistory.count - 1 {
+            navigationHistory.removeSubrange((navigationHistoryIndex + 1)..<navigationHistory.count)
+        }
+
+        navigationHistory.append(url)
+        navigationHistoryIndex = navigationHistory.count - 1
+        updateNavigationAvailability()
+    }
+
+    private func updateNavigationAvailability() {
+        canNavigateBack = navigationHistoryIndex > 0
+        canNavigateForward = navigationHistoryIndex >= 0 && navigationHistoryIndex < navigationHistory.count - 1
     }
 
     @objc private func handleExternalChangeTimer() {
