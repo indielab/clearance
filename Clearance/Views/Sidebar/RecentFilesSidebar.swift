@@ -3,6 +3,7 @@ import SwiftUI
 struct RecentFilesSidebar: View {
     let entries: [RecentFileEntry]
     let onSelect: (RecentFileEntry) -> Void
+    let onPopOut: (RecentFileEntry) -> Void
 
     var body: some View {
         List(entries) { entry in
@@ -13,7 +14,7 @@ struct RecentFilesSidebar: View {
                     Text(entry.displayName)
                         .font(.body)
                         .lineLimit(1)
-                    Text(entry.path)
+                    Text(entry.directoryPath)
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
@@ -22,6 +23,11 @@ struct RecentFilesSidebar: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
             .buttonStyle(.plain)
+            .contextMenu {
+                Button("Pop Out In New Window") {
+                    onPopOut(entry)
+                }
+            }
         }
         .listStyle(.sidebar)
     }

@@ -8,11 +8,11 @@ final class EditorTemplateTests: XCTestCase {
         XCTAssertTrue(html.contains("CodeMirror.fromTextArea"))
         XCTAssertTrue(html.contains("mode: 'markdown'"))
         XCTAssertTrue(html.contains("undoDepth: 10000"))
-        XCTAssertTrue(html.contains("vendor/codemirror/lib/codemirror.min.css"))
-        XCTAssertTrue(html.contains("vendor/codemirror/lib/codemirror.min.js"))
-        XCTAssertTrue(html.contains("vendor/codemirror/mode/xml/xml.min.js"))
-        XCTAssertTrue(html.contains("vendor/codemirror/mode/meta.min.js"))
-        XCTAssertTrue(html.contains("vendor/codemirror/mode/markdown/markdown.min.js"))
+        XCTAssertTrue(html.contains("codemirror.min.css"))
+        XCTAssertTrue(html.contains("codemirror.min.js"))
+        XCTAssertTrue(html.contains("xml.min.js"))
+        XCTAssertTrue(html.contains("meta.min.js"))
+        XCTAssertTrue(html.contains("markdown.min.js"))
         XCTAssertFalse(html.contains("https://"))
     }
 }

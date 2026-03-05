@@ -39,5 +39,6 @@ final class RecentFilesStoreTests: XCTestCase {
         XCTAssertEqual(secondStore.entries.count, 1)
         XCTAssertEqual(secondStore.entries.first?.path, "/tmp/alpha.md")
         XCTAssertEqual(secondStore.entries.first?.displayName, "alpha.md")
+        XCTAssertEqual(secondStore.entries.first?.directoryPath, "/tmp")
     }
 }

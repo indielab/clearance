@@ -20,7 +20,10 @@ struct CodeMirrorEditorView: NSViewRepresentable {
         let webView = WKWebView(frame: .zero, configuration: configuration)
         webView.navigationDelegate = context.coordinator
         context.coordinator.webView = webView
-        webView.loadHTMLString(templateProvider.html(), baseURL: Bundle.main.bundleURL)
+        webView.loadHTMLString(
+            templateProvider.html(),
+            baseURL: Bundle.main.resourceURL ?? Bundle.main.bundleURL
+        )
         return webView
     }
 

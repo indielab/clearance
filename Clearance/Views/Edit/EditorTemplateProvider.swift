@@ -18,14 +18,15 @@ struct EditorTemplateProvider {
           <meta charset=\"utf-8\" />
           <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />
           <meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; script-src 'self' 'unsafe-inline' file:; style-src 'self' 'unsafe-inline' file:; img-src data: file:;\" />
-          <link rel=\"stylesheet\" href=\"vendor/codemirror/lib/codemirror.min.css\" />
-          <script src=\"vendor/codemirror/lib/codemirror.min.js\"></script>
-          <script src=\"vendor/codemirror/mode/xml/xml.min.js\"></script>
-          <script src=\"vendor/codemirror/mode/meta.min.js\"></script>
-          <script src=\"vendor/codemirror/mode/markdown/markdown.min.js\"></script>
+          <link rel=\"stylesheet\" href=\"codemirror.min.css\" />
+          <script src=\"codemirror.min.js\"></script>
+          <script src=\"xml.min.js\"></script>
+          <script src=\"meta.min.js\"></script>
+          <script src=\"markdown.min.js\"></script>
           <style>
-            html, body { height: 100%; margin: 0; }
-            .CodeMirror { height: 100vh; font-size: 14px; font-family: Menlo, monospace; }
+            html, body { height: 100%; margin: 0; background: #f6f6f8; }
+            .CodeMirror { height: 100vh; font-size: 14px; line-height: 1.6; font-family: "SF Mono", Menlo, Monaco, monospace; background: #ffffff; color: #1f1f24; }
+            .CodeMirror-gutters { background: #f4f4f6; border-right: 1px solid #e4e4e8; }
           </style>
         </head>
         <body>

@@ -9,6 +9,10 @@ struct RecentFileEntry: Codable, Equatable, Identifiable {
         URL(fileURLWithPath: path).lastPathComponent
     }
 
+    var directoryPath: String {
+        fileURL.deletingLastPathComponent().path
+    }
+
     var fileURL: URL {
         URL(fileURLWithPath: path)
     }

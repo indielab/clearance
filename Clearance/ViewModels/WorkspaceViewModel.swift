@@ -22,6 +22,10 @@ final class WorkspaceViewModel: ObservableObject {
         mode = appSettings.defaultOpenMode
     }
 
+    var windowTitle: String {
+        activeSession?.url.lastPathComponent ?? "Clearance"
+    }
+
     func promptAndOpenFile() {
         guard let url = openPanelService.chooseMarkdownFile() else {
             return
@@ -30,19 +34,23 @@ final class WorkspaceViewModel: ObservableObject {
         open(url: url)
     }
 
-    func open(recentEntry: RecentFileEntry) {
+    @discardableResult
+    func open(recentEntry: RecentFileEntry) -> DocumentSession? {
         open(url: recentEntry.fileURL)
     }
 
-    func open(url: URL) {
+    @discardableResult
+    func open(url: URL) -> DocumentSession? {
         do {
             let session = try DocumentSession(url: url)
             activeSession = session
             recentFilesStore.add(url: url)
             mode = appSettings.defaultOpenMode
             errorMessage = nil
+            return session
         } catch {
             errorMessage = "Failed to open \(url.path): \(error.localizedDescription)"
+            return nil
         }
     }
 }

@@ -16,8 +16,9 @@ struct WorkspaceView: View {
         NavigationSplitView {
             RecentFilesSidebar(entries: viewModel.recentFilesStore.entries) { entry in
                 viewModel.open(recentEntry: entry)
+            } onPopOut: { entry in
+                popOut(entry: entry)
             }
-            .navigationTitle("Open Files")
         } detail: {
             Group {
                 if let session = viewModel.activeSession {
@@ -27,7 +28,15 @@ struct WorkspaceView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .navigationTitle(viewModel.windowTitle)
         }
+        .focusedSceneValue(\.workspaceCommandActions, WorkspaceCommandActions(
+            openFile: { viewModel.promptAndOpenFile() },
+            showViewMode: { if viewModel.activeSession != nil { viewModel.mode = .view } },
+            showEditMode: { if viewModel.activeSession != nil { viewModel.mode = .edit } },
+            popOutActive: { popOutActiveSession() },
+            hasActiveSession: viewModel.activeSession != nil
+        ))
         .toolbar {
             ToolbarItem(placement: .automatic) {
                 Picker("Mode", selection: $viewModel.mode) {
@@ -46,11 +55,7 @@ struct WorkspaceView: View {
             }
             ToolbarItem(placement: .automatic) {
                 Button("Pop Out") {
-                    guard let session = viewModel.activeSession else {
-                        return
-                    }
-
-                    popoutWindowController.openWindow(for: session, mode: viewModel.mode)
+                    popOutActiveSession()
                 }
                 .disabled(viewModel.activeSession == nil)
             }
@@ -77,5 +82,19 @@ struct WorkspaceView: View {
         }, message: {
             Text(viewModel.errorMessage ?? "")
         })
+    }
+
+    private func popOutActiveSession() {
+        guard let session = viewModel.activeSession else {
+            return
+        }
+
+        popoutWindowController.openWindow(for: session, mode: viewModel.mode)
+    }
+
+    private func popOut(entry: RecentFileEntry) {
+        if let session = viewModel.open(recentEntry: entry) {
+            popoutWindowController.openWindow(for: session, mode: viewModel.mode)
+        }
     }
 }
