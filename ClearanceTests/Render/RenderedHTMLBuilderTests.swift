@@ -170,6 +170,21 @@ final class RenderedHTMLBuilderTests: XCTestCase {
         XCTAssertFalse(html.contains("language-graphviz"))
     }
 
+    func testGraphvizCSPAllowsBundledWASMRenderer() {
+        let body = """
+        ```dot
+        digraph {
+          a -> b
+        }
+        ```
+        """
+        let document = ParsedMarkdownDocument(body: body, flattenedFrontmatter: [:])
+
+        let html = RenderedHTMLBuilder().build(document: document)
+
+        XCTAssertTrue(html.contains("wasm-unsafe-eval"))
+    }
+
     func testRendersGFMTableSyntax() {
         let body = """
         | Name | Value |

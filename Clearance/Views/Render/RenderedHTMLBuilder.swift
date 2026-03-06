@@ -370,7 +370,7 @@ struct RenderedHTMLBuilder {
             let sources = scriptHashes
                 .map { "'sha256-\($0)'" }
                 .joined(separator: " ")
-            directives.append("script-src \(sources)")
+            directives.append("script-src \(sources) 'wasm-unsafe-eval'")
         }
         return directives.joined(separator: "; ") + ";"
     }
