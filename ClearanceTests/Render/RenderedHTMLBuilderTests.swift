@@ -136,6 +136,40 @@ final class RenderedHTMLBuilderTests: XCTestCase {
         XCTAssertFalse(html.contains("language-mermaid"))
     }
 
+    func testTransformsDotFencedBlocksIntoGraphvizContainers() {
+        let body = """
+        ```dot
+        digraph {
+          a -> b
+        }
+        ```
+        """
+        let document = ParsedMarkdownDocument(body: body, flattenedFrontmatter: [:])
+
+        let html = RenderedHTMLBuilder().build(document: document)
+
+        XCTAssertTrue(html.contains("data-clearance-diagram=\"graphviz\""))
+        XCTAssertTrue(html.contains("<div class=\"graphviz\""))
+        XCTAssertFalse(html.contains("language-dot"))
+    }
+
+    func testTransformsGraphvizFencedBlocksIntoGraphvizContainers() {
+        let body = """
+        ```graphviz
+        digraph {
+          a -> b
+        }
+        ```
+        """
+        let document = ParsedMarkdownDocument(body: body, flattenedFrontmatter: [:])
+
+        let html = RenderedHTMLBuilder().build(document: document)
+
+        XCTAssertTrue(html.contains("data-clearance-diagram=\"graphviz\""))
+        XCTAssertTrue(html.contains("<div class=\"graphviz\""))
+        XCTAssertFalse(html.contains("language-graphviz"))
+    }
+
     func testRendersGFMTableSyntax() {
         let body = """
         | Name | Value |
@@ -212,9 +246,12 @@ final class RenderedHTMLBuilderTests: XCTestCase {
         XCTAssertTrue(html.contains("data-clearance-rich-renderers=\"katex\""))
         XCTAssertTrue(html.contains("data-clearance-rich-renderers=\"auto-render\""))
         XCTAssertTrue(html.contains("data-clearance-rich-renderers=\"mermaid\""))
+        XCTAssertTrue(html.contains("data-clearance-rich-renderers=\"graphviz\""))
         XCTAssertTrue(html.contains("data-clearance-rich-renderers=\"bootstrap\""))
         XCTAssertTrue(html.contains("renderMathInElement"))
+        XCTAssertTrue(html.contains("Viz.instance()"))
         XCTAssertTrue(html.contains("mermaid.initialize"))
+        XCTAssertTrue(html.contains("'graphviz'"))
         XCTAssertTrue(html.contains("script-src"))
         XCTAssertTrue(html.contains("sha256-"))
     }
