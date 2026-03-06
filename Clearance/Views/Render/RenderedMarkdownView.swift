@@ -10,6 +10,7 @@ struct HeadingScrollRequest: Equatable {
 struct RenderedMarkdownView: NSViewRepresentable {
     let document: ParsedMarkdownDocument
     let sourceDocumentURL: URL
+    let isRemoteContent: Bool
     let headingScrollRequest: HeadingScrollRequest?
     let theme: AppTheme
     let appearance: AppearancePreference
@@ -35,7 +36,8 @@ struct RenderedMarkdownView: NSViewRepresentable {
         let html = builder.build(
             document: document,
             theme: theme,
-            appearance: appearance
+            appearance: appearance,
+            isRemoteContent: isRemoteContent
         )
         let coordinator = context.coordinator
         coordinator.sourceDocumentURL = sourceDocumentURL

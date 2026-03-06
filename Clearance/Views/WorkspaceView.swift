@@ -66,6 +66,7 @@ struct WorkspaceView: View {
                         RenderedMarkdownView(
                             document: parsed,
                             sourceDocumentURL: remoteDocument.renderURL,
+                            isRemoteContent: true,
                             headingScrollRequest: headingScrollRequest,
                             theme: appSettings.theme,
                             appearance: appSettings.appearance,

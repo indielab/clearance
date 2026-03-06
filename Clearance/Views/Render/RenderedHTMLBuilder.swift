@@ -18,19 +18,27 @@ struct RenderedHTMLBuilder {
     private let swiftKeywordRegex = try! NSRegularExpression(pattern: "\\b(?:actor|as|associatedtype|async|await|break|case|catch|class|continue|default|defer|do|else|enum|extension|fallthrough|false|for|func|guard|if|import|in|init|inout|internal|is|let|nil|operator|private|protocol|public|repeat|return|self|static|struct|subscript|super|switch|throw|throws|true|try|typealias|var|where|while)\\b")
     private let jsKeywordRegex = try! NSRegularExpression(pattern: "\\b(?:as|async|await|break|case|catch|class|const|continue|debugger|default|delete|do|else|enum|export|extends|false|finally|for|from|function|if|import|in|instanceof|interface|let|new|null|private|protected|public|readonly|return|static|switch|this|throw|true|try|type|typeof|var|void|while|with|yield)\\b")
     private let genericKeywordRegex = try! NSRegularExpression(pattern: "\\b(?:if|else|for|while|switch|case|break|continue|return|func|function|class|struct|enum|let|var|const|import|from|export|true|false|null|nil)\\b")
+    private let scriptTagRegex = try! NSRegularExpression(pattern: "(?is)<script\\b[^>]*>.*?</script>")
+    private let eventHandlerAttributeRegex = try! NSRegularExpression(pattern: "(?is)\\s+on[a-z0-9_-]+\\s*=\\s*(\"[^\"]*\"|'[^']*'|[^\\s>]+)")
+    private let javascriptURLAttributeRegex = try! NSRegularExpression(pattern: "(?is)\\s+(href|src)\\s*=\\s*(\"\\s*javascript:[^\"]*\"|'\\s*javascript:[^']*'|javascript:[^\\s>]+)")
 
     func build(
         document: ParsedMarkdownDocument,
         theme: AppTheme = .apple,
-        appearance: AppearancePreference = .system
+        appearance: AppearancePreference = .system,
+        isRemoteContent: Bool = false
     ) -> String {
         let bodyHTML = HTMLFormatter.format(document.body)
         let taskListHTML = transformTaskListItems(in: bodyHTML)
         let transformedBodyHTML = transformCodeBlocks(in: taskListHTML)
         let anchoredBodyHTML = injectHeadingIDs(in: transformedBodyHTML)
+        let safeBodyHTML = isRemoteContent ? sanitizeRemoteHTML(anchoredBodyHTML) : anchoredBodyHTML
         let frontmatterHTML = frontmatterTableHTML(from: document.flattenedFrontmatter)
         let scripts = richRendererScripts()
-        let contentSecurityPolicy = buildContentSecurityPolicy(scriptHashes: scripts.hashes)
+        let contentSecurityPolicy = buildContentSecurityPolicy(
+            scriptHashes: scripts.hashes,
+            isRemoteContent: isRemoteContent
+        )
 
         return """
         <!doctype html>
@@ -46,7 +54,7 @@ struct RenderedHTMLBuilder {
         <body>
           <main class=\"document\">
             \(frontmatterHTML)
-            <article class=\"markdown\">\(anchoredBodyHTML)</article>
+            <article class=\"markdown\">\(safeBodyHTML)</article>
           </main>
           \(scripts.html)
         </body>
@@ -338,12 +346,18 @@ struct RenderedHTMLBuilder {
             .replacingOccurrences(of: "&amp;", with: "&")
     }
 
-    private func buildContentSecurityPolicy(scriptHashes: [String]) -> String {
+    private func buildContentSecurityPolicy(scriptHashes: [String], isRemoteContent: Bool) -> String {
         var directives = [
             "default-src 'none'",
             "style-src 'unsafe-inline'",
             "img-src data: file: https: http:"
         ]
+        if isRemoteContent {
+            directives.append("base-uri 'none'")
+            directives.append("form-action 'none'")
+            directives.append("object-src 'none'")
+            directives.append("frame-ancestors 'none'")
+        }
         if !scriptHashes.isEmpty {
             let sources = scriptHashes
                 .map { "'sha256-\($0)'" }
@@ -571,6 +585,25 @@ struct RenderedHTMLBuilder {
             .replacingOccurrences(of: ">", with: "&gt;")
             .replacingOccurrences(of: "\"", with: "&quot;")
             .replacingOccurrences(of: "'", with: "&#39;")
+    }
+
+    private func sanitizeRemoteHTML(_ html: String) -> String {
+        let fullRange = NSRange(location: 0, length: (html as NSString).length)
+        let withoutScripts = scriptTagRegex.stringByReplacingMatches(
+            in: html,
+            range: fullRange,
+            withTemplate: ""
+        )
+        let withoutEventHandlers = eventHandlerAttributeRegex.stringByReplacingMatches(
+            in: withoutScripts,
+            range: NSRange(location: 0, length: (withoutScripts as NSString).length),
+            withTemplate: ""
+        )
+        return javascriptURLAttributeRegex.stringByReplacingMatches(
+            in: withoutEventHandlers,
+            range: NSRange(location: 0, length: (withoutEventHandlers as NSString).length),
+            withTemplate: ""
+        )
     }
 }
 

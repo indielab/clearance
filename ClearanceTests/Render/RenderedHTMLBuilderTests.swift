@@ -196,4 +196,36 @@ final class RenderedHTMLBuilderTests: XCTestCase {
         XCTAssertTrue(html.contains("script-src"))
         XCTAssertTrue(html.contains("sha256-"))
     }
+
+    func testRemoteContentAddsStrictContentSecurityPolicyDirectives() {
+        let document = ParsedMarkdownDocument(body: "Hello", flattenedFrontmatter: [:])
+
+        let html = RenderedHTMLBuilder().build(
+            document: document,
+            isRemoteContent: true
+        )
+
+        XCTAssertTrue(html.contains("form-action"))
+        XCTAssertTrue(html.contains("base-uri"))
+        XCTAssertTrue(html.contains("object-src"))
+        XCTAssertTrue(html.contains("frame-ancestors"))
+    }
+
+    func testRemoteContentModeRemovesUnsafeInlineScriptsAndJavascriptLinks() {
+        let body = """
+        <script>alert('xss')</script>
+        <a href="javascript:alert('xss')">Click</a>
+        <div onclick="alert('xss')">Test</div>
+        """
+        let document = ParsedMarkdownDocument(body: body, flattenedFrontmatter: [:])
+
+        let html = RenderedHTMLBuilder().build(
+            document: document,
+            isRemoteContent: true
+        )
+
+        XCTAssertFalse(html.contains("alert('xss')"))
+        XCTAssertFalse(html.contains("href=\"javascript:"))
+        XCTAssertFalse(html.contains("onclick="))
+    }
 }

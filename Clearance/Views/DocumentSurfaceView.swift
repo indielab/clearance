@@ -15,6 +15,7 @@ struct DocumentSurfaceView: View {
             RenderedMarkdownView(
                 document: parsedDocument,
                 sourceDocumentURL: session.url,
+                isRemoteContent: false,
                 headingScrollRequest: headingScrollRequest,
                 theme: theme,
                 appearance: appearance,
