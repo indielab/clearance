@@ -66,6 +66,32 @@ struct WorkspaceCommandActions {
     let canZoomText: Bool
 }
 
+struct RenderedTextZoomCommand {
+    let title: String
+    let keyEquivalent: KeyEquivalent
+    let modifiers: EventModifiers
+}
+
+enum RenderedTextZoomCommands {
+    static let actualSize = RenderedTextZoomCommand(
+        title: "Actual Size",
+        keyEquivalent: "0",
+        modifiers: .command
+    )
+
+    static let zoomIn = RenderedTextZoomCommand(
+        title: "Zoom In",
+        keyEquivalent: "=",
+        modifiers: .command
+    )
+
+    static let zoomOut = RenderedTextZoomCommand(
+        title: "Zoom Out",
+        keyEquivalent: "-",
+        modifiers: .command
+    )
+}
+
 private struct WorkspaceCommandActionsKey: FocusedValueKey {
     typealias Value = WorkspaceCommandActions
 }
@@ -211,26 +237,35 @@ private struct ClearanceCommands: Commands {
             Button(actions?.hasVisibleOutline == true ? "Hide Outline" : "Show Outline") {
                 actions?.toggleOutline()
             }
-            .keyboardShortcut("0")
             .disabled(actions?.canShowOutline != true)
 
             Divider()
 
-            Button("Make Text Bigger") {
-                actions?.makeTextBigger()
-            }
-            .keyboardShortcut("=")
-            .disabled(actions?.canZoomText != true)
-
-            Button("Make Text Normal") {
+            Button(RenderedTextZoomCommands.actualSize.title) {
                 actions?.resetTextSize()
             }
+            .keyboardShortcut(
+                RenderedTextZoomCommands.actualSize.keyEquivalent,
+                modifiers: RenderedTextZoomCommands.actualSize.modifiers
+            )
             .disabled(actions?.canZoomText != true)
 
-            Button("Make Text Smaller") {
+            Button(RenderedTextZoomCommands.zoomIn.title) {
+                actions?.makeTextBigger()
+            }
+            .keyboardShortcut(
+                RenderedTextZoomCommands.zoomIn.keyEquivalent,
+                modifiers: RenderedTextZoomCommands.zoomIn.modifiers
+            )
+            .disabled(actions?.canZoomText != true)
+
+            Button(RenderedTextZoomCommands.zoomOut.title) {
                 actions?.makeTextSmaller()
             }
-            .keyboardShortcut("-")
+            .keyboardShortcut(
+                RenderedTextZoomCommands.zoomOut.keyEquivalent,
+                modifiers: RenderedTextZoomCommands.zoomOut.modifiers
+            )
             .disabled(actions?.canZoomText != true)
         }
     }

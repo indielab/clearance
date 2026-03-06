@@ -5,6 +5,20 @@ import XCTest
 
 @MainActor
 final class WorkspaceToolbarTests: XCTestCase {
+    func testRenderedTextZoomCommandsUseStandardMacTitlesAndShortcuts() {
+        XCTAssertEqual(RenderedTextZoomCommands.actualSize.title, "Actual Size")
+        XCTAssertEqual(RenderedTextZoomCommands.actualSize.keyEquivalent, "0")
+        XCTAssertEqual(RenderedTextZoomCommands.actualSize.modifiers, EventModifiers.command)
+
+        XCTAssertEqual(RenderedTextZoomCommands.zoomIn.title, "Zoom In")
+        XCTAssertEqual(RenderedTextZoomCommands.zoomIn.keyEquivalent, "=")
+        XCTAssertEqual(RenderedTextZoomCommands.zoomIn.modifiers, EventModifiers.command)
+
+        XCTAssertEqual(RenderedTextZoomCommands.zoomOut.title, "Zoom Out")
+        XCTAssertEqual(RenderedTextZoomCommands.zoomOut.keyEquivalent, "-")
+        XCTAssertEqual(RenderedTextZoomCommands.zoomOut.modifiers, EventModifiers.command)
+    }
+
     func testAddressToolbarItemStaysVisibleAndShrinksAtPracticalWindowWidths() throws {
         let window = NSWindow(
             contentRect: NSRect(x: 0, y: 0, width: 900, height: 700),
