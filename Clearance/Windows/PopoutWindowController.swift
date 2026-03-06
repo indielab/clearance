@@ -87,7 +87,7 @@ private struct PopoutDocumentView: View {
 
     var body: some View {
         let parsed = FrontmatterParser().parse(markdown: session.content)
-        HSplitView {
+        OutlineSplitView(showsInspector: isOutlineVisible && mode == .view && !parsed.headings.isEmpty) {
             DocumentSurfaceView(
                 session: session,
                 parsedDocument: parsed,
@@ -100,19 +100,16 @@ private struct PopoutDocumentView: View {
                 mode: $mode
             )
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-
-            if isOutlineVisible && mode == .view && !parsed.headings.isEmpty {
-                MarkdownOutlineView(headings: parsed.headings) { heading in
-                    headingScrollSequence += 1
-                    headingScrollRequest = HeadingScrollRequest(
-                        headingIndex: heading.index,
-                        sequence: headingScrollSequence
-                    )
-                }
-                .transition(.move(edge: .trailing).combined(with: .opacity))
+        } inspector: {
+            MarkdownOutlineView(headings: parsed.headings) { heading in
+                headingScrollSequence += 1
+                headingScrollRequest = HeadingScrollRequest(
+                    headingIndex: heading.index,
+                    sequence: headingScrollSequence
+                )
             }
         }
-        .animation(.snappy(duration: 0.2), value: isOutlineVisible && mode == .view && !parsed.headings.isEmpty)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .preferredColorScheme(preferredColorScheme)
         .toolbarRole(.editor)
         .toolbar {

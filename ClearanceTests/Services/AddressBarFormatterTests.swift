@@ -7,10 +7,18 @@ final class AddressBarFormatterTests: XCTestCase {
         XCTAssertEqual(AddressBarFormatter.editingText(for: nil), "")
     }
 
-    func testLocalDisplayUsesFilesystemPath() {
+    func testLocalDisplayUsesFilename() {
         let url = URL(fileURLWithPath: "/tmp/docs/README.md")
 
         let text = AddressBarFormatter.displayText(for: url)
+
+        XCTAssertEqual(text, "README.md")
+    }
+
+    func testLocalEditingUsesFullFilesystemPath() {
+        let url = URL(fileURLWithPath: "/tmp/docs/README.md")
+
+        let text = AddressBarFormatter.editingText(for: url)
 
         XCTAssertEqual(text, "/tmp/docs/README.md")
     }

@@ -7,7 +7,8 @@ enum AddressBarFormatter {
         }
 
         if url.isFileURL {
-            return url.path
+            let filename = url.lastPathComponent
+            return filename.isEmpty ? url.path : filename
         }
 
         let collapsedURL = collapsedDirectoryURLIfNeeded(url)
