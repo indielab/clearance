@@ -8,6 +8,15 @@ struct HeadingScrollRequest: Equatable {
 }
 
 struct RenderedMarkdownView: NSViewRepresentable {
+    fileprivate struct RenderContentKey: Equatable {
+        let body: String
+        let flattenedFrontmatter: [String: String]
+        let sourceDocumentURL: URL
+        let isRemoteContent: Bool
+        let theme: AppTheme
+        let appearance: AppearancePreference
+    }
+
     let document: ParsedMarkdownDocument
     let sourceDocumentURL: URL
     let isRemoteContent: Bool
@@ -34,6 +43,14 @@ struct RenderedMarkdownView: NSViewRepresentable {
     }
 
     func updateNSView(_ webView: WKWebView, context: Context) {
+        let renderContentKey = RenderContentKey(
+            body: document.body,
+            flattenedFrontmatter: document.flattenedFrontmatter,
+            sourceDocumentURL: sourceDocumentURL,
+            isRemoteContent: isRemoteContent,
+            theme: theme,
+            appearance: appearance
+        )
         let html = builder.build(
             document: document,
             theme: theme,
@@ -45,21 +62,26 @@ struct RenderedMarkdownView: NSViewRepresentable {
         coordinator.sourceDocumentURL = sourceDocumentURL
         coordinator.onOpenLinkedDocument = onOpenLinkedDocument
         let baseURL = sourceDocumentURL.deletingLastPathComponent()
-        if coordinator.renderedHTML != html {
-            coordinator.renderedHTML = html
+        if coordinator.renderContentKey != renderContentKey {
+            coordinator.renderContentKey = renderContentKey
+            coordinator.appliedTextScale = textScale
+            coordinator.pendingTextScale = nil
             coordinator.pendingScrollRequest = headingScrollRequest
             webView.loadHTMLString(html, baseURL: baseURL)
             return
         }
 
+        coordinator.applyTextScaleIfNeeded(textScale, in: webView)
         coordinator.applyScrollRequestIfNeeded(headingScrollRequest, in: webView)
     }
 
     final class Coordinator: NSObject, WKNavigationDelegate {
         var sourceDocumentURL: URL
         var onOpenLinkedDocument: (URL) -> Void
-        var renderedHTML: String?
+        fileprivate var renderContentKey: RenderContentKey?
         var pendingScrollRequest: HeadingScrollRequest?
+        var pendingTextScale: Double?
+        var appliedTextScale: Double?
         private var appliedScrollRequest: HeadingScrollRequest?
 
         init(sourceDocumentURL: URL, onOpenLinkedDocument: @escaping (URL) -> Void) {
@@ -92,8 +114,28 @@ struct RenderedMarkdownView: NSViewRepresentable {
         }
 
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+            applyTextScaleIfNeeded(pendingTextScale, in: webView)
+            pendingTextScale = nil
             applyScrollRequestIfNeeded(pendingScrollRequest, in: webView)
             pendingScrollRequest = nil
+        }
+
+        func applyTextScaleIfNeeded(_ textScale: Double?, in webView: WKWebView) {
+            guard let textScale,
+                  textScale != appliedTextScale else {
+                return
+            }
+
+            guard !webView.isLoading else {
+                pendingTextScale = textScale
+                return
+            }
+
+            let formattedTextScale = RenderedHTMLBuilder.formatCSSNumber(textScale)
+            let script = "document.documentElement.style.setProperty('--text-scale', '\(formattedTextScale)');"
+            webView.evaluateJavaScript(script)
+            appliedTextScale = textScale
+            pendingTextScale = nil
         }
 
         func applyScrollRequestIfNeeded(_ request: HeadingScrollRequest?, in webView: WKWebView) {

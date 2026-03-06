@@ -489,9 +489,14 @@ struct RenderedHTMLBuilder {
         return Data(digest).base64EncodedString()
     }
 
+    static func formatCSSNumber(_ value: Double) -> String {
+        let roundedValue = (value * 10).rounded() / 10
+        return String(format: "%.1f", locale: Locale(identifier: "en_US_POSIX"), roundedValue)
+    }
+
     private func themedStylesheet(theme: AppTheme, appearance: AppearancePreference, textScale: Double) -> String {
         let palette = theme.palette
-        let formattedTextScale = String(format: "%.1f", textScale)
+        let formattedTextScale = Self.formatCSSNumber(textScale)
         let variableCSS: String
 
         switch appearance {

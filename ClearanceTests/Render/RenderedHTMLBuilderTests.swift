@@ -99,6 +99,13 @@ final class RenderedHTMLBuilderTests: XCTestCase {
         XCTAssertTrue(html.contains("font-size: calc(16.5px * var(--text-scale));"))
     }
 
+    func testTextScaleFormattingUsesCSSSafeDecimalNotation() {
+        XCTAssertEqual(
+            RenderedHTMLBuilder.formatCSSNumber(1.2000000000000002),
+            "1.2"
+        )
+    }
+
     func testAddsHeadingIDsForInDocumentAnchorLinks() {
         let body = """
         [Build and Run](#build-and-run)

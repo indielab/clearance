@@ -567,15 +567,20 @@ struct WorkspaceView: View {
     }
 
     private func makeTextBigger() {
-        appSettings.renderedTextScale = min(appSettings.renderedTextScale + 0.1, 1.5)
+        setRenderedTextScale(appSettings.renderedTextScale + 0.1)
     }
 
     private func makeTextSmaller() {
-        appSettings.renderedTextScale = max(appSettings.renderedTextScale - 0.1, 0.7)
+        setRenderedTextScale(appSettings.renderedTextScale - 0.1)
     }
 
     private func resetTextSize() {
         appSettings.renderedTextScale = 1.0
+    }
+
+    private func setRenderedTextScale(_ value: Double) {
+        let clampedValue = min(max(value, 0.7), 1.5)
+        appSettings.renderedTextScale = (clampedValue * 10).rounded() / 10
     }
 
     private var canZoomText: Bool {
