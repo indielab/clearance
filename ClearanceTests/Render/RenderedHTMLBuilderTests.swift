@@ -261,6 +261,33 @@ final class RenderedHTMLBuilderTests: XCTestCase {
         XCTAssertFalse(html.contains("<plan>"))
     }
 
+    func testCustomWrapperTagsStillAllowFencedCodeBlocksToRender() {
+        let body = """
+        <Good>
+        ```typescript
+        async function retryOperation<T>(fn: () => Promise<T>): Promise<T> {
+          return await fn();
+        }
+        ```
+        Just enough to pass
+        </Good>
+        """
+        let document = ParsedMarkdownDocument(body: body, flattenedFrontmatter: [:])
+
+        let html = RenderedHTMLBuilder().build(document: document)
+
+        XCTAssertTrue(html.contains("&lt;Good&gt;"))
+        XCTAssertTrue(html.contains("&lt;/Good&gt;"))
+        XCTAssertTrue(html.contains("<p>&lt;Good&gt;</p>"))
+        XCTAssertTrue(html.contains("<p>Just enough to pass</p>"))
+        XCTAssertTrue(html.contains("<p>&lt;/Good&gt;</p>"))
+        XCTAssertFalse(html.contains("Just enough to pass &lt;/Good&gt;"))
+        XCTAssertTrue(html.contains("<pre><code class=\"language-typescript\">"))
+        XCTAssertTrue(html.contains("hl-keyword"))
+        XCTAssertTrue(html.contains("retryOperation"))
+        XCTAssertFalse(html.contains("```typescript"))
+    }
+
     func testTransformsLatexFencedBlocksIntoMathContainers() {
         let body = """
         ```latex

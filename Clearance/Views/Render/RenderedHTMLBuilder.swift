@@ -3,6 +3,7 @@ import Foundation
 import Markdown
 
 struct RenderedHTMLBuilder {
+    private let standaloneSimpleTagLineRegex = try! NSRegularExpression(pattern: "(?m)^([ \\t]*)</?([A-Za-z][A-Za-z0-9_-]*)>([ \\t]*)$")
     private let codeBlockHTMLRegex = try! NSRegularExpression(pattern: "(?s)<pre><code(?: class=\"language-([^\"]+)\")?>(.*?)</code></pre>")
     private let taskListItemHTMLRegex = try! NSRegularExpression(pattern: "(?si)<li>(\\s*<input\\b[^>]*\\btype=\"checkbox\"[^>]*>\\s*)")
     private let headingHTMLRegex = try! NSRegularExpression(pattern: "(?is)<h([1-6])([^>]*)>(.*?)</h\\1>")
@@ -29,8 +30,9 @@ struct RenderedHTMLBuilder {
         textScale: Double = 1.0,
         isRemoteContent: Bool = false
     ) -> String {
+        let parserInput = isRemoteContent ? document.body : escapeStandaloneCustomTags(in: document.body)
         let bodyHTML = RenderedMarkdownHTMLFormatter.format(
-            Document(parsing: document.body),
+            Document(parsing: parserInput),
             rendersRawHTMLAsLiteral: !isRemoteContent
         )
         let taskListHTML = transformTaskListItems(in: bodyHTML)
@@ -86,6 +88,32 @@ struct RenderedHTMLBuilder {
           </table>
         </section>
         """
+    }
+
+    private func escapeStandaloneCustomTags(in markdown: String) -> String {
+        let range = NSRange(location: 0, length: (markdown as NSString).length)
+        let matches = standaloneSimpleTagLineRegex.matches(in: markdown, range: range)
+        guard !matches.isEmpty else {
+            return markdown
+        }
+
+        let nsMarkdown = markdown as NSString
+        var result = markdown
+
+        for match in matches.reversed() {
+            let tagName = nsMarkdown.substring(with: match.range(at: 2)).lowercased()
+            guard !Self.standardHTMLTagNames.contains(tagName) else {
+                continue
+            }
+
+            let line = nsMarkdown.substring(with: match.range)
+            result = (result as NSString).replacingCharacters(
+                in: match.range,
+                with: "\n\(escapeHTML(line))\n"
+            )
+        }
+
+        return result
     }
 
     private func transformCodeBlocks(in html: String) -> String {
@@ -714,6 +742,20 @@ struct RenderedHTMLBuilder {
             withTemplate: ""
         )
     }
+
+    private static let standardHTMLTagNames: Set<String> = [
+        "a", "abbr", "address", "article", "aside", "audio", "b", "base", "bdi", "bdo",
+        "blockquote", "body", "br", "button", "canvas", "caption", "cite", "code", "col",
+        "colgroup", "data", "datalist", "dd", "del", "details", "dfn", "dialog", "div", "dl",
+        "dt", "em", "fieldset", "figcaption", "figure", "footer", "form", "h1", "h2", "h3",
+        "h4", "h5", "h6", "head", "header", "hr", "html", "i", "iframe", "img", "input",
+        "ins", "kbd", "label", "legend", "li", "link", "main", "mark", "menu", "meta", "nav",
+        "noscript", "object", "ol", "optgroup", "option", "output", "p", "picture", "pre",
+        "progress", "q", "rp", "rt", "ruby", "s", "samp", "script", "search", "section",
+        "select", "slot", "small", "source", "span", "strong", "style", "sub", "summary",
+        "sup", "table", "tbody", "td", "template", "textarea", "tfoot", "th", "thead",
+        "time", "title", "tr", "track", "u", "ul", "var", "video", "wbr"
+    ]
 }
 
 private struct TokenSpan {
