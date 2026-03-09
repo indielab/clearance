@@ -19,6 +19,7 @@ struct ClearanceApp: App {
             .onAppear {
                 showUpdatedReleaseNotesIfNeeded()
             }
+            .handlesExternalEvents(preferring: ["*"], allowing: ["*"])
         }
         .windowToolbarStyle(.unified)
         .commands {
