@@ -2,6 +2,13 @@ import AppKit
 import SwiftUI
 import WebKit
 
+enum WorkspaceDropPayloadResolver {
+    static func recentEntry(for droppedURL: URL, in entries: [RecentFileEntry]) -> RecentFileEntry? {
+        let storageKey = RecentFileEntry.storageKey(for: droppedURL)
+        return entries.first { $0.path == storageKey }
+    }
+}
+
 struct WorkspaceView: View {
     @ObservedObject private var appSettings: AppSettings
     @StateObject private var viewModel: WorkspaceViewModel
@@ -121,12 +128,12 @@ struct WorkspaceView: View {
                         .padding(12)
                 }
             }
-            .dropDestination(for: String.self) { items, _ in
-                guard let path = items.first else {
+            .dropDestination(for: URL.self) { items, _ in
+                guard let url = items.first else {
                     return false
                 }
 
-                return popOutDraggedPath(path)
+                return popOutDraggedURL(url)
             } isTargeted: { isTargeted in
                 isPopOutDropTargeted = isTargeted
             }
@@ -325,13 +332,16 @@ struct WorkspaceView: View {
         viewModel.removeRecentEntry(path: entry.path)
     }
 
-    private func popOutDraggedPath(_ path: String) -> Bool {
-        if let entry = viewModel.recentFilesStore.entries.first(where: { $0.path == path }) {
+    private func popOutDraggedURL(_ url: URL) -> Bool {
+        if let entry = WorkspaceDropPayloadResolver.recentEntry(
+            for: url,
+            in: viewModel.recentFilesStore.entries
+        ) {
             popOut(entry: entry)
             return true
         }
 
-        guard let session = popOutSession(for: URL(fileURLWithPath: path)) else {
+        guard let session = popOutSession(for: url) else {
             return false
         }
 
