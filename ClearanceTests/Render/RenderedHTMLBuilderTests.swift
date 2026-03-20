@@ -65,6 +65,17 @@ final class RenderedHTMLBuilderTests: XCTestCase {
         XCTAssertTrue(html.contains("<h1 id=\"heading\">Heading</h1>"))
     }
 
+    func testPreservesInlineCodeInsideHeadings() {
+        let document = ParsedMarkdownDocument(
+            body: "## Use `clearance`",
+            flattenedFrontmatter: [:]
+        )
+
+        let html = RenderedHTMLBuilder().build(document: document)
+
+        XCTAssertTrue(html.contains("<h2 id=\"use-clearance\">Use <code>clearance</code></h2>"))
+    }
+
     func testIncludesLocalOnlyContentSecurityPolicy() {
         let document = ParsedMarkdownDocument(body: "Hello", flattenedFrontmatter: [:])
 
