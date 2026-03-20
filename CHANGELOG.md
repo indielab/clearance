@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-## 1.2.5 - March 19, 2026
+## 1.2.6 - March 19, 2026
 
 - Added `File > New…` with the standard `Cmd-N` shortcut, so Clearance can create a new markdown file from a save panel and open it directly in Edit mode. Thanks to lekashman for the request in `#13`.
 - Added a bundled `clearance` command-line tool plus a best-effort installer in Settings that symlinks it into `/usr/local/bin`. The helper opens files and folders in Clearance, and creates missing markdown files before opening them. Thanks to Rod Begbie for the request in `#16`.

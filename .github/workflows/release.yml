@@ -132,11 +132,11 @@ jobs:
             )
           fi
 
-          if [ -d "$APP_PATH/Contents/MacOS" ]; then
+          if [ -d "$APP_PATH/Contents/Helpers" ]; then
             while IFS= read -r executable; do
               sign_path "$executable"
             done < <(
-              find "$APP_PATH/Contents/MacOS" \
+              find "$APP_PATH/Contents/Helpers" \
                 -type f \
                 -perm -111 \
                 -print \
@@ -146,11 +146,11 @@ jobs:
             )
           fi
 
-          if [ -d "$APP_PATH/Contents/Helpers" ]; then
+          if [ -d "$APP_PATH/Contents/MacOS" ]; then
             while IFS= read -r executable; do
               sign_path "$executable"
             done < <(
-              find "$APP_PATH/Contents/Helpers" \
+              find "$APP_PATH/Contents/MacOS" \
                 -type f \
                 -perm -111 \
                 -print \
