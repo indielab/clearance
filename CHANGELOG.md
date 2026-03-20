@@ -1,5 +1,11 @@
 # Clearance Changelog
 
+## Unreleased
+
+- Added `File > New…` with the standard `Cmd-N` shortcut, so Clearance can create a new markdown file from a save panel and open it directly in Edit mode. Thanks to lekashman for the request in `#13`.
+- Added a bundled `clearance` command-line tool plus a best-effort installer in Settings that symlinks it into `/usr/local/bin`. The helper opens files and folders in Clearance, and creates missing markdown files before opening them. Thanks to Rod Begbie for the request in `#16`.
+- Fixed heading rendering so inline code spans remain inline code inside headings instead of being flattened to plain text. Thanks to Peter Seibel for the fix in `#17`.
+
 ## 1.2.4 - March 19, 2026
 
 - Fixed printing and Print to PDF so rendered markdown always uses a print-safe light palette instead of disappearing on white paper. Thanks to Harper Reed for the bug report in `#21`.
