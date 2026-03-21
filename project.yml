@@ -72,6 +72,8 @@ targets:
     platform: macOS
     sources:
       - path: ClearanceTests
+      - path: docs/demo-corpus
+        buildPhase: resources
     dependencies:
       - target: Clearance
     settings:
