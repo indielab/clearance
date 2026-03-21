@@ -49,6 +49,7 @@ jobs:
           security import "$APP_CERT_PATH" -k "$KEYCHAIN_PATH" -P "$DEVELOPER_ID_APPLICATION_CERT_PASSWORD" -T /usr/bin/codesign -T /usr/bin/security
           security import "$INSTALLER_CERT_PATH" -k "$KEYCHAIN_PATH" -P "$DEVELOPER_ID_INSTALLER_CERT_PASSWORD" -T /usr/bin/pkgbuild -T /usr/bin/productbuild -T /usr/bin/productsign -T /usr/bin/security
           security set-key-partition-list -S apple-tool:,apple: -s -k "$RUNNER_TEMP" "$KEYCHAIN_PATH"
+          echo "SIGNING_KEYCHAIN_PATH=$KEYCHAIN_PATH" >> "$GITHUB_ENV"
 
       - name: Build Release App
         id: build
@@ -112,7 +113,10 @@ jobs:
           CLI_INSTALLER_PKG="${{ steps.build.outputs.cli_installer_pkg }}"
           SIGNED_CLI_INSTALLER_PKG="$RUNNER_TEMP/ClearanceCLIInstaller-signed.pkg"
 
+          security unlock-keychain -p "$RUNNER_TEMP" "$SIGNING_KEYCHAIN_PATH"
+          security find-identity -v "$SIGNING_KEYCHAIN_PATH"
           productsign \
+            --keychain "$SIGNING_KEYCHAIN_PATH" \
             --sign "$DEVELOPER_ID_INSTALLER_SIGNING_IDENTITY" \
             "$CLI_INSTALLER_PKG" \
             "$SIGNED_CLI_INSTALLER_PKG"
@@ -128,10 +132,12 @@ jobs:
           APP_PATH="${{ steps.build.outputs.app_path }}"
           SIGN_IDENTITY="$DEVELOPER_ID_APPLICATION_SIGNING_IDENTITY"
 
+          security unlock-keychain -p "$RUNNER_TEMP" "$SIGNING_KEYCHAIN_PATH"
+
           sign_path() {
             local path="$1"
             if [ -e "$path" ]; then
-              codesign --force --timestamp --options runtime --sign "$SIGN_IDENTITY" "$path"
+              codesign --keychain "$SIGNING_KEYCHAIN_PATH" --force --timestamp --options runtime --sign "$SIGN_IDENTITY" "$path"
             fi
           }
 
