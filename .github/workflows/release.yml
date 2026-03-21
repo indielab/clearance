@@ -20,7 +20,7 @@ jobs:
       SPARKLE_FEED_URL: https://github.com/${{ github.repository }}/releases/latest/download/appcast.xml
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6.0.2
 
       - name: Install Tools
         run: brew install xcodegen
@@ -320,17 +320,26 @@ jobs:
           cp "$APPCAST_DIR/appcast.xml" "$ARTIFACTS_DIR/appcast.xml"
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            ${{ steps.notarize.outputs.app_zip }}
-            ${{ steps.notarize.outputs.app_dmg }}
-            ${{ steps.notarize.outputs.migration_pkg }}
-            ${{ env.ARTIFACTS_DIR }}/appcast.xml
-          generate_release_notes: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          RELEASE_FILES=(
+            "${{ steps.notarize.outputs.app_zip }}"
+            "${{ steps.notarize.outputs.app_dmg }}"
+            "${{ steps.notarize.outputs.migration_pkg }}"
+            "${{ env.ARTIFACTS_DIR }}/appcast.xml"
+          )
+
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" "${RELEASE_FILES[@]}" --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" "${RELEASE_FILES[@]}" --generate-notes
+          fi
 
       - name: Upload Build Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.0
         with:
           name: clearance-${{ github.ref_name }}
           path: |
