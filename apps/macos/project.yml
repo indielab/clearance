@@ -72,7 +72,7 @@ targets:
     platform: macOS
     sources:
       - path: ClearanceTests
-      - path: docs/demo-corpus
+      - path: ../../packages/demo-corpus
         buildPhase: resources
     dependencies:
       - target: Clearance

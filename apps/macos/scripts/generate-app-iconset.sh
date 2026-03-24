@@ -4,12 +4,12 @@ set -euo pipefail
 usage() {
   cat <<'EOF'
 Usage:
-  scripts/generate-app-iconset.sh [source-svg] [appiconset-dir]
+  apps/macos/scripts/generate-app-iconset.sh [source-svg] [appiconset-dir]
 
 Examples:
-  scripts/generate-app-iconset.sh
-  scripts/generate-app-iconset.sh /Users/jesse/Downloads/clearance-icon_5.svg
-  scripts/generate-app-iconset.sh ./icon.svg ./Clearance/Resources/Assets.xcassets/AppIcon.appiconset
+  apps/macos/scripts/generate-app-iconset.sh
+  apps/macos/scripts/generate-app-iconset.sh /Users/jesse/Downloads/clearance-icon_5.svg
+  apps/macos/scripts/generate-app-iconset.sh ./icon.svg ./apps/macos/Clearance/Resources/Assets.xcassets/AppIcon.appiconset
 EOF
 }
 
@@ -34,8 +34,9 @@ if ! command -v sips >/dev/null 2>&1; then
 fi
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-repo_root="$(cd "$script_dir/.." && pwd)"
-default_source_svg="$repo_root/assets/branding/clearance-app-icon.svg"
+app_root="$(cd "$script_dir/.." && pwd)"
+workspace_root="$(cd "$script_dir/../../.." && pwd)"
+default_source_svg="$workspace_root/packages/assets/branding/clearance-app-icon.svg"
 
 source_svg="${1:-$default_source_svg}"
 if [[ ! -f "$source_svg" ]]; then
@@ -44,7 +45,7 @@ if [[ ! -f "$source_svg" ]]; then
   exit 1
 fi
 
-icon_dir="${2:-$repo_root/Clearance/Resources/Assets.xcassets/AppIcon.appiconset}"
+icon_dir="${2:-$app_root/Clearance/Resources/Assets.xcassets/AppIcon.appiconset}"
 
 mkdir -p "$icon_dir"
 

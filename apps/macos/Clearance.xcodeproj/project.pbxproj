@@ -526,7 +526,7 @@
 				EE637C14B0134783696A5B19 /* 03-links-and-outline.md */,
 			);
 			name = "demo-corpus";
-			path = "docs/demo-corpus";
+			path = "../../packages/demo-corpus";
 			sourceTree = "<group>";
 		};
 		D43735393D5B6A71F0E55F4A /* Services */ = {

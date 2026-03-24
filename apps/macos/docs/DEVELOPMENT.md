@@ -7,22 +7,24 @@ This document is for contributors and maintainers.
 1. Generate the Xcode project:
 
 ```bash
-xcodegen generate
+cd apps/macos && xcodegen generate
 ```
 
 2. Build:
 
 ```bash
-xcodebuild -project Clearance.xcodeproj -scheme Clearance -configuration Debug -destination 'platform=macOS' build
+cd apps/macos && xcodebuild -project Clearance.xcodeproj -scheme Clearance -configuration Debug -destination 'platform=macOS' build
 ```
 
 3. Run tests:
 
 ```bash
-xcodebuild test -project Clearance.xcodeproj -scheme Clearance -destination 'platform=macOS'
+cd apps/macos && xcodebuild test -project Clearance.xcodeproj -scheme Clearance -destination 'platform=macOS'
 ```
 
 4. Open `Clearance.xcodeproj` in Xcode and run `Clearance`.
+
+From the workspace root, that project now lives at `apps/macos/Clearance.xcodeproj`.
 
 ## Releases and Sparkle
 
@@ -75,11 +77,12 @@ git push origin v0.0.1
 Regenerate app icon assets from the source SVG:
 
 ```bash
-scripts/generate-app-iconset.sh
+apps/macos/scripts/generate-app-iconset.sh
 ```
 
 ## Notes
 
 - Markdown rendering and editing operate locally.
-- CodeMirror vendor assets remain in-repo under `Clearance/Resources/vendor/codemirror`.
+- CodeMirror vendor assets remain in-repo under `apps/macos/Clearance/Resources/vendor/codemirror`.
+- Shared markdown fixtures live under `packages/demo-corpus`.
 - Release artifacts are generated in CI.

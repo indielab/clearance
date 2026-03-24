@@ -13,7 +13,7 @@ jobs:
     runs-on: macos-26
     env:
       APP_NAME: Clearance
-      PROJECT_FILE: Clearance.xcodeproj
+      PROJECT_FILE: apps/macos/Clearance.xcodeproj
       SCHEME: Clearance
       DERIVED_DATA_PATH: ${{ github.workspace }}/build
       ARTIFACTS_DIR: ${{ github.workspace }}/dist
@@ -63,7 +63,7 @@ jobs:
           VERSION="${GITHUB_REF_NAME#v}"
           BUILD_NUMBER="${GITHUB_RUN_NUMBER}"
 
-          xcodegen generate
+          xcodegen generate --spec apps/macos/project.yml --project apps/macos
           xcodebuild \
             -project "$PROJECT_FILE" \
             -scheme "$SCHEME" \
@@ -262,7 +262,7 @@ jobs:
           submit_for_notarization "$NOTARY_ZIP" "$NOTARY_SUBMIT_OUTPUT" "$NOTARY_LOG_OUTPUT"
           xcrun stapler staple "$APP_PATH"
 
-          "$GITHUB_WORKSPACE/Packaging/build-migration-pkg.sh" \
+          "$GITHUB_WORKSPACE/apps/macos/Packaging/build-migration-pkg.sh" \
             "$APP_PATH" \
             "$APP_MIGRATION_PKG" \
             "$VERSION" \

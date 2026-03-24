@@ -5,21 +5,21 @@
 Use this script to rebuild `AppIcon.appiconset` from an SVG source:
 
 ```bash
-scripts/generate-app-iconset.sh
+apps/macos/scripts/generate-app-iconset.sh
 ```
 
 By default it reads:
 
-- `assets/branding/clearance-app-icon.svg`
+- `packages/assets/branding/clearance-app-icon.svg`
 
 And writes:
 
-- `Clearance/Resources/Assets.xcassets/AppIcon.appiconset`
+- `apps/macos/Clearance/Resources/Assets.xcassets/AppIcon.appiconset`
 
 You can override source and output paths:
 
 ```bash
-scripts/generate-app-iconset.sh /path/to/icon.svg /path/to/AppIcon.appiconset
+apps/macos/scripts/generate-app-iconset.sh /path/to/icon.svg /path/to/AppIcon.appiconset
 ```
 
 ## Generate Sparkle Signing Keys
@@ -27,13 +27,13 @@ scripts/generate-app-iconset.sh /path/to/icon.svg /path/to/AppIcon.appiconset
 Generate or retrieve Sparkle EdDSA keys for release signing:
 
 ```bash
-scripts/generate-sparkle-keys.sh
+apps/macos/scripts/generate-sparkle-keys.sh
 ```
 
 Optional custom account name:
 
 ```bash
-scripts/generate-sparkle-keys.sh your-org
+apps/macos/scripts/generate-sparkle-keys.sh your-org
 ```
 
 This prints:
