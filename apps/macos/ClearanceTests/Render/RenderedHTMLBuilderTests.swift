@@ -640,6 +640,36 @@ final class RenderedHTMLBuilderTests: XCTestCase {
         XCTAssertTrue(html.contains("sha256-"))
     }
 
+    func testCurrencyAmountsAreNotRenderedAsMath() {
+        // Prose containing two dollar signs must not be consumed as inline math.
+        // Before the fix, "from $23 billion to $14 billion" would be italicised
+        // and the dollar signs would vanish because KaTeX auto-render treated
+        // $...$ as an inline math delimiter.
+        let body = "The budget proposes a nearly 40 percent reduction — from $23 billion to roughly $14 billion — in the National Park Service's maintenance budget."
+        let document = ParsedMarkdownDocument(body: body, flattenedFrontmatter: [:])
+
+        let html = RenderedHTMLBuilder().build(document: document)
+
+        // The single-$ delimiter must not appear in the KaTeX auto-render config.
+        XCTAssertFalse(
+            html.contains("left: '$', right: '$'"),
+            "Single-$ delimiter must not be present; it corrupts prose with currency amounts"
+        )
+    }
+
+    func testDoubleDoublesDollarDelimiterIsRetained() {
+        // Display-math via $$...$$ must still work after removing the single-$ delimiter.
+        let body = "Display math: $$E = mc^2$$"
+        let document = ParsedMarkdownDocument(body: body, flattenedFrontmatter: [:])
+
+        let html = RenderedHTMLBuilder().build(document: document)
+
+        XCTAssertTrue(
+            html.contains("left: '$$', right: '$$'"),
+            "Double-dollar display-math delimiter must still be present"
+        )
+    }
+
     func testGraphvizSVGScalesToAvailableWidth() {
         let body = """
         ```dot
