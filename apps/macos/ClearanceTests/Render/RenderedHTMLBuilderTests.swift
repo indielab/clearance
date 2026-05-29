@@ -655,6 +655,11 @@ final class RenderedHTMLBuilderTests: XCTestCase {
             html.contains("left: '$', right: '$'"),
             "Single-$ delimiter must not be present; it corrupts prose with currency amounts"
         )
+        // The dollar amounts must appear as literal text in the HTML output.
+        XCTAssertTrue(
+            html.contains("$23 billion"),
+            "Currency amounts must appear as literal text in the rendered HTML"
+        )
     }
 
     func testDoubleDoublesDollarDelimiterIsRetained() {
